@@ -82,12 +82,16 @@ def _collect_runs(workspace_dir: Path) -> list[dict]:
                         pass
 
                 outputs_list = []
+                outputs_content = {}
                 outputs_dir = run_dir / "outputs"
                 if outputs_dir.exists():
-                    outputs_list = [
-                        p.name for p in sorted(outputs_dir.iterdir())
-                        if p.is_file() and p.name != "metrics.json"
-                    ]
+                    for p in sorted(outputs_dir.iterdir()):
+                        if p.is_file() and p.name != "metrics.json":
+                            outputs_list.append(p.name)
+                            try:
+                                outputs_content[p.name] = p.read_text(encoding="utf-8")
+                            except Exception:
+                                outputs_content[p.name] = ""
 
                 timing = {}
                 timing_path = run_dir / "timing.json"
@@ -105,6 +109,7 @@ def _collect_runs(workspace_dir: Path) -> list[dict]:
                     "transcript": transcript,
                     "grading": grading,
                     "outputs_list": outputs_list,
+                    "outputs_content": outputs_content,
                     "timing": timing,
                 })
 

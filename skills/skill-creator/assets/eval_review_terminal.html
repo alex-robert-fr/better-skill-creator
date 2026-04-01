@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>__SKILL_NAME_PLACEHOLDER__ — TERMINAL</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: #0a0d0a;
+      --surface2: #0f150f;
+      --border: #0d2b0d;
+      --text: #00ff41;
+      --muted: #267326;
+      --muted2: #1a4d1a;
+      --accent: #00ff41;
+      --green: #00ff41;
+      --red: #ff3333;
+      --blue: #00ccff;
+      --yellow: #ffb000;
+      --with-bg: #001a00;
+      --with-border: #006600;
+      --with-text: #00ff41;
+      --without-bg: #1a0d00;
+      --without-border: #664400;
+      --without-text: #ffb000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', 'Consolas', monospace;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.4;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* CRT scanlines overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.12) 2px,
+        rgba(0,0,0,0.12) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* CRT flicker subtle */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    /* ─── HEADER ─── */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .header-title::before { content: '┌─[ '; color: var(--muted); }
+    .header-title::after  { content: ' ]─►'; color: var(--muted); }
+
+    .header-sep { color: var(--muted2); flex: 1; min-width: 20px; overflow: hidden; white-space: nowrap; }
+
+    #save-status {
+      color: var(--blue);
+      font-size: 11px;
+      min-width: 100px;
+      text-align: right;
+      opacity: 0.85;
+    }
+
+    .tab-bar { display: flex; gap: 4px; }
+
+    .tab-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 12px;
+      padding: 3px 10px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.1s;
+    }
+    .tab-btn:hover { border-color: var(--muted); color: var(--text); }
+    .tab-btn.active {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--with-bg);
+    }
+    .tab-btn.active::before { content: '>_ '; }
+
+    /* ─── LAYOUT ─── */
+    .tab-panel {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hidden { display: none !important; }
+
+    .outputs-panel {
+      flex-direction: row;
+      overflow: hidden;
+    }
+
+    /* ─── SIDEBAR ─── */
+    #sidebar {
+      width: 220px;
+      min-width: 180px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      flex-shrink: 0;
+      padding: 6px 0;
+    }
+
+    #sidebar::-webkit-scrollbar { width: 6px; }
+    #sidebar::-webkit-scrollbar-track { background: var(--bg); }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .sidebar-hdr {
+      font-size: 10px;
+      color: var(--muted);
+      padding: 4px 8px 8px;
+      letter-spacing: 2px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 5px 8px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all 0.1s;
+    }
+    .sidebar-item:hover { background: var(--surface2); border-left-color: var(--muted); }
+    .sidebar-item.active {
+      background: var(--with-bg);
+      border-left-color: var(--green);
+    }
+
+    .sbi-dot {
+      font-size: 10px;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .dot-pass { color: var(--green); }
+    .dot-fail { color: var(--red); }
+    .dot-neutral { color: var(--muted); }
+
+    .sbi-name {
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-all;
+      line-height: 1.3;
+    }
+    .sidebar-item.active .sbi-name { color: var(--text); }
+    .sidebar-item.active .sbi-name::before { content: '> '; color: var(--green); }
+
+    /* ─── MAIN CONTENT ─── */
+    #main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #main-content::-webkit-scrollbar { width: 6px; }
+    #main-content::-webkit-scrollbar-track { background: var(--bg); }
+    #main-content::-webkit-scrollbar-thumb { background: var(--border); }
+
+    #eval-name {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--green);
+      letter-spacing: 1px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eval-prompt-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+    }
+    .eval-prompt-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    #eval-prompt { color: var(--muted); font-size: 12px; }
+    #eval-prompt pre { white-space: pre-wrap; font-family: inherit; }
+
+    /* ─── COMPARE GRID ─── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .col-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+    .col-header {
+      font-size: 12px;
+      font-weight: bold;
+      padding: 4px 8px;
+      letter-spacing: 2px;
+      text-align: center;
+      border: 1px solid;
+    }
+    .col-header-with {
+      color: var(--with-text);
+      border-color: var(--with-border);
+      background: var(--with-bg);
+    }
+    .col-header-without {
+      color: var(--without-text);
+      border-color: var(--without-border);
+      background: var(--without-bg);
+    }
+
+    #col-with, #col-without {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 200px;
+    }
+
+    /* ─── RUN METRICS ─── */
+    .run-metrics {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .met {
+      font-size: 11px;
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      letter-spacing: 1px;
+    }
+    .met-tokens { color: var(--blue); border-color: #003344; }
+    .met-time   { color: var(--muted); }
+    .met-pass   { font-weight: bold; }
+    .pass-100  { color: var(--green); border-color: var(--muted2); }
+    .pass-mid  { color: var(--yellow); border-color: #443300; }
+    .pass-low  { color: var(--red); border-color: #330000; }
+
+    /* ─── ASSERTIONS ─── */
+    .assertions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .assertion {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11px;
+      padding: 3px 6px;
+      border-left: 2px solid transparent;
+    }
+    .a-pass { border-left-color: var(--green); background: rgba(0,255,65,0.03); }
+    .a-fail { border-left-color: var(--red); background: rgba(255,51,51,0.05); }
+    .a-icon { flex-shrink: 0; font-weight: bold; font-size: 10px; padding-top: 1px; }
+    .a-pass .a-icon { color: var(--green); }
+    .a-fail .a-icon { color: var(--red); }
+    .a-body { display: flex; flex-direction: column; gap: 2px; }
+    .a-text { color: var(--text); }
+    .a-evidence { color: var(--muted); font-size: 10px; font-style: italic; }
+
+    /* ─── OUTPUTS BUTTONS ─── */
+    .outputs-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .output-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--blue);
+      font-family: inherit;
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: all 0.1s;
+    }
+    .output-btn:hover { border-color: var(--blue); background: #001a33; }
+
+    /* ─── SECTIONS (transcript / feedback) ─── */
+    .section-block { display: flex; flex-direction: column; gap: 4px; }
+    .section-hdr {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      padding: 3px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .collapsible-toggle { cursor: pointer; user-select: none; }
+    .collapsible-toggle:hover { color: var(--text); }
+    .collapsible-toggle .arrow { font-size: 10px; }
+    .collapsible { display: none; }
+    .collapsible.open { display: block; }
+
+    .transcript-md {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 6px 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .transcript-md::-webkit-scrollbar { width: 4px; }
+    .transcript-md::-webkit-scrollbar-thumb { background: var(--border); }
+    .transcript-md pre { white-space: pre-wrap; font-family: inherit; }
+    .transcript-md h1, .transcript-md h2, .transcript-md h3 { font-size: 12px; color: var(--text); margin: 4px 0; }
+    .transcript-md p { margin: 3px 0; }
+    .transcript-md code { background: var(--surface2); padding: 1px 3px; font-family: inherit; }
+    .transcript-md ul, .transcript-md ol { padding-left: 16px; margin: 3px 0; }
+
+    .feedback-area {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-family: inherit;
+      font-size: 11px;
+      padding: 6px 8px;
+      resize: vertical;
+      min-height: 60px;
+      line-height: 1.4;
+      outline: none;
+    }
+    .feedback-area:focus { border-color: var(--muted); }
+    .feedback-area::placeholder { color: var(--muted2); }
+    .feedback-area::before { content: '>> '; }
+
+    /* ─── MD RENDER GLOBAL ─── */
+    .md-render { color: var(--muted); font-size: 12px; }
+    .md-render pre { white-space: pre-wrap; font-family: inherit; }
+    .md-render h1, .md-render h2, .md-render h3 { font-size: 12px; color: var(--text); margin: 4px 0; }
+    .md-render p { margin: 3px 0; }
+    .md-render code { background: var(--surface2); padding: 1px 3px; font-family: inherit; }
+    .md-render a { color: var(--blue); }
+    .md-render ul, .md-render ol { padding-left: 16px; margin: 3px 0; }
+    .md-render blockquote { border-left: 2px solid var(--muted2); padding-left: 8px; color: var(--muted); }
+
+    .code-block {
+      white-space: pre-wrap;
+      font-family: inherit;
+      font-size: 11px;
+      color: var(--green);
+      background: var(--surface2);
+      padding: 8px;
+      overflow-x: auto;
+    }
+
+    .empty-state { color: var(--muted2); font-size: 12px; padding: 12px 0; }
+
+    /* ─── NAV BAR ─── */
+    #nav-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 11px;
+      padding: 3px 10px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.1s;
+    }
+    .nav-btn:hover:not(:disabled) { border-color: var(--text); color: var(--text); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    #nav-counter {
+      color: var(--green);
+      font-size: 12px;
+      letter-spacing: 2px;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .nav-sep { flex: 1; color: var(--muted2); overflow: hidden; white-space: nowrap; font-size: 11px; }
+
+    .nav-hints { color: var(--muted2); font-size: 10px; letter-spacing: 0.5px; }
+
+    .btn-submit {
+      background: var(--surface2);
+      border: 1px solid var(--yellow);
+      color: var(--yellow);
+      font-family: inherit;
+      font-size: 11px;
+      padding: 3px 12px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      font-weight: bold;
+      transition: all 0.1s;
+    }
+    .btn-submit:hover { background: #1a0d00; border-color: #ffcc44; color: #ffcc44; }
+
+    /* ─── BENCHMARK TAB ─── */
+    #tab-benchmark {
+      overflow-y: auto;
+      padding: 12px;
+    }
+    #tab-benchmark::-webkit-scrollbar { width: 6px; }
+    #tab-benchmark::-webkit-scrollbar-thumb { background: var(--border); }
+
+    #benchmark-content { display: flex; flex-direction: column; gap: 12px; }
+
+    .bk-meta {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .kpi-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 10px 14px;
+      min-width: 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .kpi-cfg { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 2px; }
+    .kpi-tokens { font-size: 18px; font-weight: bold; color: var(--blue); letter-spacing: 1px; }
+    .kpi-stats { font-size: 11px; display: flex; gap: 8px; }
+    .kpi-pass { color: var(--green); }
+    .kpi-time { color: var(--muted); }
+    .kpi-rating {
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      padding: 2px 6px;
+      border: 1px solid;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .chart-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px;
+      height: 180px;
+      position: relative;
+    }
+
+    .bk-section { display: flex; flex-direction: column; gap: 6px; }
+    .bk-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+    .bk-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .bk-table th, .bk-table td {
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    .bk-table th {
+      background: var(--surface2);
+      color: var(--muted);
+      letter-spacing: 1px;
+      font-size: 10px;
+    }
+    .bk-table td { color: var(--text); }
+    .bk-table tr:hover td { background: var(--surface2); }
+    .bk-label { color: var(--muted); font-size: 10px; letter-spacing: 1px; }
+    .bk-std { color: var(--muted2); font-size: 10px; }
+
+    .delta-pos { color: var(--red); }
+    .delta-neg { color: var(--green); }
+
+    .rating-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 1px 5px;
+      border: 1px solid;
+      letter-spacing: 1px;
+    }
+    .rating-excellent { color: var(--green); border-color: var(--muted2); }
+    .rating-good { color: #80ff80; border-color: var(--muted2); }
+    .rating-neutral { color: var(--muted); border-color: var(--border); }
+    .rating-poor { color: var(--yellow); border-color: #443300; }
+    .rating-bad, .rating-critical { color: var(--red); border-color: #330000; }
+
+    .notes-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+    .notes-list li { font-size: 11px; color: var(--muted); padding: 3px 0; }
+
+    /* ─── MODAL ─── */
+    #modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-inner {
+      background: var(--surface);
+      border: 1px solid var(--green);
+      width: 100%;
+      max-width: 860px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 20px rgba(0,255,65,0.15), 0 0 40px rgba(0,255,65,0.05);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .modal-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    .modal-header-left::before { content: '╔══[ '; color: var(--muted2); }
+
+    #modal-title {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .modal-header-left::after { content: ' ]══'; color: var(--muted2); }
+
+    .modal-close {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 12px;
+      padding: 2px 8px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.1s;
+    }
+    .modal-close:hover { border-color: var(--red); color: var(--red); }
+
+    #modal-body {
+      overflow-y: auto;
+      padding: 12px;
+      flex: 1;
+    }
+    #modal-body::-webkit-scrollbar { width: 6px; }
+    #modal-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+    /* ─── SCROLLBARS GLOBAL ─── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted2); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 800px) {
+      .compare-grid { grid-template-columns: 1fr; }
+      #sidebar { width: 160px; }
+      .charts-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-title">__SKILL_NAME_PLACEHOLDER__</div>
+    <div class="header-sep">──────────────────────────────────────</div>
+    <div id="save-status"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="outputs" onclick="switchTab('outputs')">[OUTPUTS]</button>
+      <button class="tab-btn" data-tab="benchmark" onclick="switchTab('benchmark')">[BENCHMARK]</button>
+    </div>
+  </header>
+
+  <!-- TAB: OUTPUTS -->
+  <div id="tab-outputs" class="tab-panel outputs-panel">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+      <div class="sidebar-hdr">// EVALS</div>
+      <!-- populated by JS -->
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div id="main-content">
+
+      <!-- EVAL NAME + PROMPT -->
+      <div id="eval-name"></div>
+
+      <div class="eval-prompt-wrap">
+        <div class="eval-prompt-label">// PROMPT</div>
+        <div id="eval-prompt"></div>
+      </div>
+
+      <!-- COMPARE GRID -->
+      <div class="compare-grid">
+
+        <!-- WITH SKILL -->
+        <div class="col-wrap">
+          <div class="col-header col-header-with">╔═[ WITH SKILL ]═╗</div>
+          <div id="col-with"></div>
+        </div>
+
+        <!-- WITHOUT SKILL -->
+        <div class="col-wrap">
+          <div class="col-header col-header-without">╔═[ WITHOUT SKILL ]═╗</div>
+          <div id="col-without"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: BENCHMARK -->
+  <div id="tab-benchmark" class="tab-panel hidden">
+    <div id="benchmark-content">
+      <p class="empty-state">// chargement benchmark…</p>
+    </div>
+  </div>
+
+  <!-- NAV BAR -->
+  <nav id="nav-bar" class="nav-bar">
+    <button id="btn-prev" class="nav-btn" onclick="navigate(-1)">← PREV</button>
+    <span id="nav-counter">[1/1]</span>
+    <button id="btn-next" class="nav-btn" onclick="navigate(1)">NEXT →</button>
+    <div class="nav-sep">──────────────────────────────────────────</div>
+    <span class="nav-hints">[j/k ←→:NAV] [b:BENCHMARK] [ESC:CLOSE]</span>
+    <button class="btn-submit" onclick="submitReviews()">[SOUMETTRE]</button>
+  </nav>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal hidden" onclick="handleModalClick(event)">
+    <div class="modal-inner">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span id="modal-title">fichier.md</span>
+        </div>
+        <button class="modal-close" onclick="closeModal()">[X]</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    const EVAL_DATA = __EVAL_DATA_PLACEHOLDER__;
+    const BENCHMARK_DATA = __BENCHMARK_DATA_PLACEHOLDER__;
+    const SKILL_NAME = "__SKILL_NAME_PLACEHOLDER__";
+    const PREVIOUS_DATA = __PREVIOUS_DATA_PLACEHOLDER__;
+
+    function esc(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function safeId(str) { return String(str).replace(/[^a-zA-Z0-9_-]/g,'_'); }
+    function renderMd(text) {
+      if (!text) return '';
+      if (typeof marked !== 'undefined') return marked.parse(text);
+      return '<pre style="white-space:pre-wrap">' + esc(text) + '</pre>';
+    }
+
+    const runOutputsMap = {};
+    EVAL_DATA.forEach(r => { runOutputsMap[r.run_id] = r.outputs_content || {}; });
+
+    let modalIsOpen = false;
+    function openModal(filename, runId) {
+      const content = runOutputsMap[runId]?.[filename] || '(contenu non disponible)';
+      document.getElementById('modal-title').textContent = filename;
+      const body = document.getElementById('modal-body');
+      if (filename.endsWith('.md')) {
+        body.innerHTML = '<div class="md-render">' + renderMd(content) + '</div>';
+      } else if (filename.endsWith('.json')) {
+        try { body.innerHTML = '<pre class="code-block">' + esc(JSON.stringify(JSON.parse(content),null,2)) + '</pre>'; }
+        catch { body.innerHTML = '<pre class="code-block">' + esc(content) + '</pre>'; }
+      } else {
+        body.innerHTML = '<pre class="code-block">' + esc(content) + '</pre>';
+      }
+      document.getElementById('modal').classList.remove('hidden');
+      modalIsOpen = true;
+    }
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); modalIsOpen = false; }
+    function handleModalClick(e) { if (e.target.id === 'modal') closeModal(); }
+
+    function buildEvalGroups(data) {
+      const map = new Map();
+      data.forEach(run => {
+        if (!map.has(run.eval_name)) map.set(run.eval_name, { name: run.eval_name, prompt: run.prompt, configs: {} });
+        map.get(run.eval_name).configs[run.configuration] = run;
+      });
+      return Array.from(map.values());
+    }
+    const evalGroups = buildEvalGroups(EVAL_DATA);
+    let currentEvalIndex = 0;
+    const feedback = {};
+    EVAL_DATA.forEach(r => { feedback[r.run_id] = ''; });
+
+    function renderRunColumn(colId, run) {
+      const col = document.getElementById(colId);
+      if (!col) return;
+      if (!run) { col.innerHTML = '<p class="empty-state">// N/A</p>'; return; }
+      const exp = run.grading?.expectations || [];
+      const passCount = exp.filter(e => e.passed).length;
+      const passRate = exp.length ? Math.round(passCount / exp.length * 100) : null;
+      const tokens = (run.timing?.total_tokens || 0).toLocaleString('fr-FR');
+      const secs = run.timing?.total_duration_seconds;
+      const passClass = passRate === 100 ? 'pass-100' : (passRate !== null && passRate >= 60) ? 'pass-mid' : 'pass-low';
+
+      let html = `<div class="run-metrics">
+        <span class="met met-tokens">TOK:${tokens}</span>
+        ${secs ? `<span class="met met-time">TIME:${secs}s</span>` : ''}
+        ${passRate !== null ? `<span class="met met-pass ${passClass}">PASS:${passRate}%</span>` : ''}
+      </div>`;
+
+      if (exp.length) {
+        html += `<div class="assertions-list">`;
+        exp.forEach(e => {
+          html += `<div class="assertion ${e.passed ? 'a-pass' : 'a-fail'}">
+            <span class="a-icon">${e.passed ? '[OK]' : '[FAIL]'}</span>
+            <div class="a-body">
+              <div class="a-text">${esc(e.text)}</div>
+              ${e.evidence ? `<div class="a-evidence">// ${esc(e.evidence)}</div>` : ''}
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (run.outputs_list?.length) {
+        html += `<div class="outputs-row">`;
+        run.outputs_list.forEach(f => {
+          html += `<button class="output-btn" onclick="openModal('${esc(f)}','${esc(run.run_id)}')">[${esc(f)} ↗]</button>`;
+        });
+        html += `</div>`;
+      }
+
+      const tid = 'tr-' + safeId(run.run_id);
+      html += `<div class="section-block">
+        <div class="section-hdr collapsible-toggle" onclick="toggleSection('${tid}')">
+          &gt; TRANSCRIPT <span class="arrow">[&#9660;]</span>
+        </div>
+        <div class="collapsible open" id="${tid}">
+          <div class="md-render transcript-md">${renderMd(run.transcript || '// vide')}</div>
+        </div>
+      </div>`;
+
+      html += `<div class="section-block">
+        <div class="section-hdr">&gt; FEEDBACK</div>
+        <textarea class="feedback-area" placeholder="// notes sur ce run…"
+          oninput="saveFeedback('${run.run_id}',this.value)">${esc(feedback[run.run_id] || '')}</textarea>
+      </div>`;
+
+      col.innerHTML = html;
+    }
+
+    function toggleSection(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
+
+    function renderCurrentEval() {
+      const g = evalGroups[currentEvalIndex];
+      if (!g) return;
+      const nameEl = document.getElementById('eval-name'); if (nameEl) nameEl.textContent = '> ' + g.name;
+      const promptEl = document.getElementById('eval-prompt'); if (promptEl) promptEl.innerHTML = renderMd(g.prompt || '');
+      renderRunColumn('col-with', g.configs['with_skill']);
+      renderRunColumn('col-without', g.configs['without_skill']);
+    }
+
+    function goToEval(index) {
+      if (index < 0 || index >= evalGroups.length) return;
+      currentEvalIndex = index;
+      renderCurrentEval(); updateSidebar(); updateNavBar();
+      const mc = document.getElementById('main-content'); if (mc) mc.scrollTop = 0;
+    }
+    function navigate(dir) { goToEval(currentEvalIndex + dir); }
+    function updateNavBar() {
+      const ctr = document.getElementById('nav-counter'); if (ctr) ctr.textContent = `[${currentEvalIndex+1}/${evalGroups.length}]`;
+      const p = document.getElementById('btn-prev'); const n = document.getElementById('btn-next');
+      if (p) p.disabled = currentEvalIndex === 0; if (n) n.disabled = currentEvalIndex === evalGroups.length-1;
+    }
+
+    function buildSidebar() {
+      const sb = document.getElementById('sidebar'); if (!sb) return;
+      sb.innerHTML = '<div class="sidebar-hdr">// EVALS</div>' + evalGroups.map((g,i) => {
+        const cfgs = Object.keys(g.configs);
+        const allPass = cfgs.every(c => { const e=g.configs[c]?.grading?.expectations||[]; return e.length>0&&e.every(x=>x.passed); });
+        const anyFail = cfgs.some(c => (g.configs[c]?.grading?.expectations||[]).some(x=>!x.passed));
+        const status = allPass ? '[OK]' : anyFail ? '[FAIL]' : '[--]';
+        const statusClass = allPass ? 'dot-pass' : anyFail ? 'dot-fail' : 'dot-neutral';
+        return `<div class="sidebar-item ${i===0?'active':''}" id="sbi-${i}" onclick="goToEval(${i})">
+          <span class="sbi-dot ${statusClass}">${status}</span>
+          <span class="sbi-name">${esc(g.name)}</span>
+        </div>`;
+      }).join('');
+    }
+    function updateSidebar() {
+      evalGroups.forEach((_,i) => { const el=document.getElementById(`sbi-${i}`); if(el) el.classList.toggle('active', i===currentEvalIndex); });
+    }
+
+    function switchTab(name) {
+      ['outputs','benchmark'].forEach(t => {
+        const p=document.getElementById(`tab-${t}`); if(p) p.classList.toggle('hidden', t!==name);
+        const b=document.querySelector(`[data-tab="${t}"]`); if(b) b.classList.toggle('active', t===name);
+      });
+      const nb=document.getElementById('nav-bar'); if(nb) nb.classList.toggle('hidden', name!=='outputs');
+      if(name==='benchmark') renderBenchmark();
+    }
+
+    function saveFeedback(runId, value) { feedback[runId] = value; showStatus('// saved'); }
+    function showStatus(msg) {
+      const el=document.getElementById('save-status'); if(!el) return;
+      el.textContent = msg; setTimeout(()=>{ el.textContent=''; }, 1500);
+    }
+    function submitReviews() {
+      const reviews = EVAL_DATA.map(run => ({ run_id: run.run_id, feedback: feedback[run.run_id]||'', timestamp: new Date().toISOString() }));
+      const blob = new Blob([JSON.stringify({reviews, status:'complete'},null,2)], {type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='feedback.json'; a.click();
+      showStatus('// feedback.json written');
+    }
+
+    let chartsInit = false;
+    function renderBenchmark() {
+      const bk = BENCHMARK_DATA;
+      const el = document.getElementById('benchmark-content');
+      if (!bk?.run_summary) { if(el) el.innerHTML='<p class="empty-state">// benchmark data not found</p>'; return; }
+      const summary = bk.run_summary;
+      const configs = Object.keys(summary).filter(k => k !== 'delta');
+      const efficiency = bk.token_efficiency || {};
+      const notes = bk.analyst_notes || [];
+      const meta = bk.metadata || {};
+
+      let html = `<div class="bk-meta">// ${esc(meta.skill_name||SKILL_NAME)} | model:${esc(meta.executor_model||'—')} | ${esc(meta.timestamp||'—')} | evals:${(meta.evals_run||[]).length}</div>`;
+
+      html += '<div class="kpi-grid">';
+      configs.forEach(cfg => {
+        const s=summary[cfg]||{};
+        const tokens=Math.round(s.tokens?.mean||0).toLocaleString('fr-FR');
+        const pr=Math.round((s.pass_rate?.mean||0)*100);
+        const time=(s.time_seconds?.mean||0).toFixed(1);
+        const eff=efficiency[cfg];
+        html+=`<div class="kpi-card"><div class="kpi-cfg">[${esc(cfg.toUpperCase().replace(/_/g,' '))}]</div><div class="kpi-tokens">${tokens} tok</div><div class="kpi-stats"><span class="kpi-pass">${pr}% pass</span> <span class="kpi-time">${time}s</span></div>${eff?`<div class="kpi-rating rating-${esc(eff.rating)}">${esc(eff.rating).toUpperCase()}</div>`:''}</div>`;
+      });
+      html += '</div>';
+
+      html += `<div class="charts-row"><div class="chart-wrap"><canvas id="chart-tokens"></canvas></div><div class="chart-wrap"><canvas id="chart-pass"></canvas></div></div>`;
+
+      html += `<div class="bk-section"><div class="bk-title">// COMPARAISON</div><table class="bk-table"><thead><tr><th>METRIQUE</th>${configs.map(c=>`<th>${esc(c.toUpperCase().replace(/_/g,' '))}</th>`).join('')}</tr></thead><tbody>`;
+      [{label:'TOKENS',key:'tokens',fmt:v=>Math.round(v).toLocaleString('fr-FR')},{label:'PASS RATE',key:'pass_rate',fmt:v=>`${Math.round(v*100)}%`},{label:'TEMPS (s)',key:'time_seconds',fmt:v=>v.toFixed(1)}].forEach(row=>{
+        html+=`<tr><td class="bk-label">${row.label}</td>${configs.map(cfg=>{const s=summary[cfg]?.[row.key]||{};return`<td>${row.fmt(s.mean||0)} <span class="bk-std">±${row.fmt(s.stddev||0)}</span></td>`;}).join('')}</tr>`;
+      });
+      const delta=summary.delta||{};
+      const fd=Object.values(delta)[0];
+      if(fd){html+=`<tr><td class="bk-label">DELTA TOK</td><td colspan="${configs.length}"><span class="${fd.tokens?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(fd.tokens||'—')}</span> ${fd.rating?`<span class="rating-badge rating-${esc(fd.rating)}">${esc(fd.rating).toUpperCase()}</span>`:''}</td></tr>`;}
+      html += '</tbody></table></div>';
+
+      if(Object.keys(efficiency).length){
+        html+=`<div class="bk-section"><div class="bk-title">// TOKEN EFFICIENCY</div><table class="bk-table"><thead><tr><th>CONFIG</th><th>REF</th><th>DELTA TOK</th><th>DELTA PASS</th><th>TOK/PT</th><th>RATING</th></tr></thead><tbody>`;
+        Object.entries(efficiency).forEach(([cfg,eff])=>{
+          html+=`<tr><td>${esc(cfg)}</td><td class="bk-label">${esc(eff.vs)}</td><td class="${eff.tokens_delta?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(eff.tokens_delta)}</td><td class="${eff.pass_rate_delta?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(eff.pass_rate_delta)}</td><td>${eff.tokens_per_pass_rate_point?.toLocaleString('fr-FR')||'—'}</td><td class="rating-badge rating-${esc(eff.rating)}">${esc(eff.rating).toUpperCase()}</td></tr>`;
+        });
+        html+='</tbody></table></div>';
+      }
+
+      if(notes.length){html+=`<div class="bk-section"><div class="bk-title">// OBSERVATIONS</div><ul class="notes-list">${notes.map(n=>`<li>// ${esc(n)}</li>`).join('')}</ul></div>`;}
+
+      if(el) el.innerHTML = html;
+
+      if(!chartsInit && typeof Chart !== 'undefined'){
+        chartsInit = true;
+        const labels=configs.map(c=>c.replace(/_/g,' ').toUpperCase());
+        const colors=['rgba(0,255,65,0.6)','rgba(255,176,0,0.6)','rgba(0,204,255,0.6)','rgba(255,51,51,0.6)'];
+        const borders=['#00ff41','#ffb000','#00ccff','#ff3333'];
+        const opts=(title)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#267326',font:{family:'Courier New'}}},title:{display:true,text:title,color:'#00ff41',font:{size:12,family:'Courier New'}}},scales:{x:{ticks:{color:'#267326',font:{family:'Courier New'}},grid:{color:'#0d2b0d'}},y:{ticks:{color:'#267326',font:{family:'Courier New'}},grid:{color:'#0d2b0d'}}}});
+        new Chart(document.getElementById('chart-tokens'),{type:'bar',data:{labels,datasets:[{label:'TOKENS',data:configs.map(c=>Math.round(summary[c]?.tokens?.mean||0)),backgroundColor:colors,borderColor:borders,borderWidth:1}]},options:opts('TOKENS / CONFIG')});
+        new Chart(document.getElementById('chart-pass'),{type:'bar',data:{labels,datasets:[{label:'PASS RATE %',data:configs.map(c=>Math.round((summary[c]?.pass_rate?.mean||0)*100)),backgroundColor:colors,borderColor:borders,borderWidth:1}]},options:opts('PASS RATE %')});
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if(modalIsOpen){ if(e.key==='Escape') closeModal(); return; }
+      if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT') return;
+      if(e.key==='ArrowLeft'||e.key==='k') navigate(-1);
+      if(e.key==='ArrowRight'||e.key==='j') navigate(1);
+      if(e.key==='b'){ const bk=document.getElementById('tab-benchmark'); switchTab(bk?.classList.contains('hidden')?'benchmark':'outputs'); }
+      if(e.key==='Escape') switchTab('outputs');
+    });
+
+    buildSidebar();
+    renderCurrentEval();
+    updateNavBar();
+  </script>
+</body>
+</html>
