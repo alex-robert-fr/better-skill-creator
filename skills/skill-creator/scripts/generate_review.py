@@ -133,16 +133,23 @@ def build_review_html(
     benchmark_path: Path | None = None,
     previous_workspace: Path | None = None,
     trigger_mode: bool = False,
+    template: str | None = None,
 ) -> str:
     """
     Génère le HTML complet du viewer.
 
-    Charge assets/eval_review.html (ou eval_review_trigger.html en trigger_mode),
+    Charge assets/eval_review.html (ou eval_review_trigger.html en trigger_mode,
+    ou eval_review_<template>.html si --template est fourni),
     remplace les placeholders par les données JSON sérialisées.
     """
     # Trouver le répertoire assets/ relatif à ce script
     scripts_dir = Path(__file__).parent
-    asset_name = "eval_review_trigger.html" if trigger_mode else "eval_review.html"
+    if trigger_mode:
+        asset_name = "eval_review_trigger.html"
+    elif template:
+        asset_name = f"eval_review_{template}.html"
+    else:
+        asset_name = "eval_review.html"
     asset_path = scripts_dir.parent / "assets" / asset_name
 
     if not asset_path.exists():
@@ -226,6 +233,7 @@ def main() -> None:
     parser.add_argument("--previous-workspace", type=Path, help="Workspace itération précédente")
     parser.add_argument("--static", type=Path, help="Écrire le HTML dans ce fichier (pas de serveur)")
     parser.add_argument("--trigger-mode", action="store_true", help="Mode description optimization")
+    parser.add_argument("--template", choices=["linear", "terminal", "shadcn", "analytics"], help="Style du template HTML")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
 
@@ -240,6 +248,7 @@ def main() -> None:
         benchmark_path=args.benchmark,
         previous_workspace=args.previous_workspace,
         trigger_mode=args.trigger_mode,
+        template=args.template,
     )
 
     # Mode statique : écrire le fichier et indiquer le chemin
