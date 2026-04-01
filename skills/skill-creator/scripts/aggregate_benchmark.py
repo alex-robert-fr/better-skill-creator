@@ -141,7 +141,7 @@ def _load_single_run(run_dir: Path, eval_id: int, eval_name: str) -> dict | None
 
     # Timing : grading.json en priorité, puis timing.json sibling
     timing = grading.get("timing", {})
-    result["time_seconds"] = timing.get("total_duration_seconds", 0.0)
+    result["time_seconds"] = timing.get("total_duration_seconds") or 0.0
 
     timing_path = run_dir / "timing.json"
     if result["time_seconds"] == 0.0 and timing_path.exists():
