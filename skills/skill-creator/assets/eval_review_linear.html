@@ -5,35 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>__SKILL_NAME_PLACEHOLDER__ — Review</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg:          #070707;
-      --surface:     #0E0E0E;
-      --surface2:    #141414;
-      --border:      #1E1E1E;
-      --border2:     #282828;
-      --text:        #EDEDED;
-      --text2:       #999;
-      --text3:       #555;
-      --text4:       #333;
-      --accent:      #7C6AF7;
-      --accent-dim:  rgba(124,106,247,0.12);
-      --with:        #5B89FF;
-      --with-dim:    rgba(91,137,255,0.07);
-      --without:     #FF7A7A;
-      --without-dim: rgba(255,122,122,0.07);
-      --pass:        #4ED87A;
-      --pass-dim:    rgba(78,216,122,0.1);
-      --fail:        #FF5757;
-      --fail-dim:    rgba(255,87,87,0.08);
-      --warn:        #F5C842;
-      --mono:        'DM Mono', 'SF Mono', monospace;
+      --bg:       #070707;
+      --s1:       #0D0D0D;
+      --s2:       #111;
+      --b1:       #1A1A1A;
+      --b2:       #262626;
+      --text:     #EDEDED;
+      --t2:       #888;
+      --t3:       #555;
+      --t4:       #333;
+      --accent:   #7C6AF7;
+      --a-dim:    rgba(124,106,247,0.1);
+      --with:     #5B89FF;
+      --without:  #FF7A7A;
+      --pass:     #4ED87A;
+      --pass-d:   rgba(78,216,122,0.12);
+      --fail:     #FF5757;
+      --fail-d:   rgba(255,87,87,0.1);
+      --warn:     #F5C842;
+      --mono:     'DM Mono', 'SF Mono', monospace;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 99px; }
 
     body {
       font-family: 'DM Sans', system-ui, sans-serif;
@@ -48,597 +48,426 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ─── SCROLLBAR ──────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 3px; height: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
-
-    /* ─── HEADER ─────────────────────────────────────────────── */
+    /* ── HEADER ─────────────────────────────────────────── */
     .app-header {
       height: 44px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      padding: 0 24px;
+      padding: 0 20px;
       gap: 12px;
-      border-bottom: 1px solid var(--border);
-      position: relative;
+      border-bottom: 1px solid var(--b1);
       z-index: 20;
     }
-
     .header-skill {
       font-family: var(--mono);
       font-size: 12px;
-      font-weight: 500;
-      color: var(--text);
-      letter-spacing: 0.02em;
+      color: var(--t3);
+      letter-spacing: 0.04em;
     }
-
-    .header-sep {
-      width: 1px;
-      height: 14px;
-      background: var(--border2);
-      flex-shrink: 0;
-    }
-
-    #save-status {
-      font-size: 11px;
-      color: var(--pass);
-      min-width: 90px;
-      font-family: var(--mono);
-    }
-
+    .header-sep { width: 1px; height: 14px; background: var(--b2); flex-shrink: 0; }
+    #save-status { font-family: var(--mono); font-size: 11px; color: var(--pass); min-width: 60px; }
     .header-spacer { flex: 1; }
-
-    .tab-nav {
-      display: flex;
-      align-items: stretch;
-      height: 100%;
-      gap: 0;
-    }
-
+    .tab-nav { display: flex; align-items: stretch; height: 100%; }
     .tab-nav button {
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--text3);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 400;
-      padding: 0 18px;
-      cursor: pointer;
-      transition: color 120ms ease, border-color 120ms ease;
-      white-space: nowrap;
+      background: none; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+      color: var(--t4); height: 100%; padding: 0 16px; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: color 100ms, border-color 100ms;
     }
-    .tab-nav button:hover { color: var(--text2); }
+    .tab-nav button:hover { color: var(--t2); }
     .tab-nav button.active { color: var(--text); border-bottom-color: var(--accent); }
 
-    /* ─── APP BODY ───────────────────────────────────────────── */
-    .app-body {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-    /* ─── TAB PANELS ─────────────────────────────────────────── */
-    .tab-panel {
-      position: absolute;
-      inset: 0;
-      bottom: 44px;
-      display: flex;
-    }
+    .tab-panel { display: flex; flex: 1; overflow: hidden; }
     .tab-panel.hidden { display: none !important; }
-    .hidden { display: none !important; }
 
-    /* ─── SIDEBAR ────────────────────────────────────────────── */
+    .outputs-panel { display: flex; }
+
     #sidebar {
-      width: 216px;
+      width: 220px;
       flex-shrink: 0;
-      border-right: 1px solid var(--border);
+      border-right: 1px solid var(--b1);
       overflow-y: auto;
-      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
     }
-
     .sidebar-label {
+      font-family: var(--mono);
       font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      color: var(--text4);
       text-transform: uppercase;
-      padding: 0 20px 10px;
+      letter-spacing: 0.1em;
+      color: var(--t4);
+      padding: 14px 18px 10px;
+      flex-shrink: 0;
     }
-
     .sidebar-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 20px;
+      gap: 9px;
+      padding: 9px 18px;
       cursor: pointer;
       border-left: 2px solid transparent;
-      transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
-      color: var(--text3);
-      font-size: 12.5px;
+      transition: background 80ms, border-color 80ms;
     }
-    .sidebar-item:hover { background: var(--surface); color: var(--text2); }
-    .sidebar-item.active {
-      background: var(--accent-dim);
-      border-left-color: var(--accent);
-      color: var(--text);
-    }
-
+    .sidebar-item:hover { background: var(--s1); }
+    .sidebar-item.active { border-left-color: var(--accent); background: var(--a-dim); }
     .sbi-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      transition: background 120ms ease;
+      width: 5px; height: 5px;
+      border-radius: 50%; flex-shrink: 0;
     }
     .dot-pass { background: var(--pass); }
     .dot-fail { background: var(--fail); }
-    .dot-neutral { background: var(--border2); }
-
+    .dot-neutral { background: var(--t4); }
     .sbi-name {
+      flex: 1;
+      font-size: 12px;
+      color: var(--t2);
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
     }
+    .sidebar-item.active .sbi-name { color: var(--text); }
+    .sbi-pr {
+      font-family: var(--mono);
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+    .pr-100 { color: var(--pass); }
+    .pr-mid { color: var(--warn); }
+    .pr-low { color: var(--fail); }
 
-    /* ─── MAIN CONTENT ───────────────────────────────────────── */
+    /* ── MAIN CONTENT ────────────────────────────────────── */
     #main-content {
       flex: 1;
       overflow-y: auto;
-      padding: 40px 48px;
-      min-width: 0;
+      padding: 32px 40px 80px;
     }
 
-    .eval-header { margin-bottom: 32px; }
+    .eval-header { margin-bottom: 28px; }
 
     #eval-name {
       font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text2);
-      letter-spacing: 0.02em;
-      margin-bottom: 14px;
+      font-size: 11px;
+      color: var(--t4);
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
     }
 
     #eval-prompt {
-      font-size: 15px;
-      font-weight: 300;
-      color: var(--text);
-      line-height: 1.7;
-      max-width: 700px;
+      font-size: 13px;
+      color: var(--t3);
+      line-height: 1.6;
     }
-    #eval-prompt p { margin-bottom: 8px; }
+    #eval-prompt p { margin-bottom: 6px; }
     #eval-prompt p:last-child { margin-bottom: 0; }
-    #eval-prompt code { font-family: var(--mono); font-size: 12px; color: var(--accent); background: var(--accent-dim); padding: 2px 6px; border-radius: 3px; }
-    #eval-prompt pre { background: var(--surface); padding: 12px 16px; border-radius: 4px; overflow-x: auto; }
 
-    /* ─── COMPARE GRID ───────────────────────────────────────── */
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-    }
-
-    .col-wrap {
+    /* ── STATS STRIP ─────────────────────────────────────── */
+    #stats-strip {
       display: flex;
-      flex-direction: column;
-      gap: 0;
-      min-width: 0;
-      animation: colFadeIn 300ms ease both;
-    }
-    .col-wrap:nth-child(2) { animation-delay: 60ms; }
-
-    @keyframes colFadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .col-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .col-header-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .with-header .col-header-dot  { background: var(--with); box-shadow: 0 0 8px rgba(91,137,255,0.4); }
-    .without-header .col-header-dot { background: var(--without); box-shadow: 0 0 8px rgba(255,122,122,0.4); }
-
-    .col-header-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      letter-spacing: -0.01em;
-    }
-    .with-header .col-header-label  { color: var(--with); }
-    .without-header .col-header-label { color: var(--without); }
-
-    /* ─── COLUMN BODY ────────────────────────────────────────── */
-    #col-with, #col-without {
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-      min-width: 0;
-    }
-
-    /* ─── METRICS ────────────────────────────────────────────── */
-    .run-metrics {
-      display: flex;
-      align-items: baseline;
-      gap: 20px;
       flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 28px;
     }
-
-    .met-tokens {
-      font-family: var(--mono);
-      font-size: 30px;
-      font-weight: 500;
-      color: var(--text);
-      letter-spacing: -0.04em;
-      line-height: 1;
-    }
-
-    .met-time {
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--text3);
-    }
-
-    .met-pass {
+    .stat-chip {
       display: inline-flex;
       align-items: center;
-      height: 22px;
-      padding: 0 10px;
-      border-radius: 99px;
-      font-size: 12px;
-      font-weight: 500;
-      font-family: var(--mono);
-      letter-spacing: 0.02em;
-    }
-    .pass-100 { background: var(--pass-dim); color: var(--pass); }
-    .pass-mid { background: rgba(245,200,66,0.1); color: var(--warn); }
-    .pass-low { background: var(--fail-dim); color: var(--fail); }
-
-    /* ─── ASSERTIONS ─────────────────────────────────────────── */
-    .assertions-list {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .assertion {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 9px 12px;
-      border-radius: 5px;
-      transition: background 100ms ease;
-      animation: assertFadeIn 250ms ease both;
-    }
-    .assertion:hover { background: var(--surface); }
-
-    @keyframes assertFadeIn {
-      from { opacity: 0; transform: translateX(-4px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    .a-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-    .a-pass .a-icon { background: var(--pass-dim); color: var(--pass); }
-    .a-fail .a-icon { background: var(--fail-dim); color: var(--fail); }
-
-    .a-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-    .a-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
-    .a-pass .a-text { color: var(--text); }
-    .a-evidence { font-size: 11px; color: var(--text3); font-style: italic; }
-
-    /* ─── OUTPUTS BUTTONS ────────────────────────────────────── */
-    .outputs-row { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    .output-btn {
-      background: transparent;
-      border: 1px solid var(--border2);
-      color: var(--text3);
-      font-family: var(--mono);
-      font-size: 11px;
+      gap: 7px;
       padding: 5px 12px;
+      border: 1px solid var(--b1);
       border-radius: 5px;
-      cursor: pointer;
-      transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
-      letter-spacing: 0.02em;
+      background: var(--s1);
     }
-    .output-btn:hover { color: var(--text); border-color: var(--text3); background: var(--surface); }
+    .stat-lbl {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--t4);
+    }
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--t2);
+    }
+    .stat-delta { font-family: var(--mono); font-size: 11px; }
+    .stat-chip.delta-pos { border-color: rgba(255,87,87,0.2); }
+    .stat-chip.delta-neg { border-color: rgba(78,216,122,0.2); }
+    .delta-pos { color: var(--fail); }
+    .delta-neg { color: var(--pass); }
 
-    /* ─── SECTION BLOCKS ─────────────────────────────────────── */
-    .section-block { display: flex; flex-direction: column; gap: 10px; }
-
-    .section-hdr {
+    /* ── COMPARE TABLE ───────────────────────────────────── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+    }
+    .compare-table th {
+      text-align: left;
+      padding: 10px 16px;
+      font-family: var(--mono);
       font-size: 10px;
       font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text4);
+      letter-spacing: 0.08em;
+      color: var(--t4);
+      border-bottom: 1px solid var(--b1);
+    }
+    .th-assertion { width: 50%; }
+    .col-with { color: var(--with) !important; }
+    .col-without { color: var(--without) !important; }
+
+    @keyframes assertIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .tr-assert { animation: assertIn 200ms both; }
+
+    .td-text {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--b1);
+      font-size: 13px;
+      color: var(--t2);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .td-result {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--b1);
+      vertical-align: top;
+      width: 18%;
+    }
+    .td-pass .res-icon {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--pass);
+    }
+    .td-fail .res-icon {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--fail);
+    }
+    .td-na .res-icon {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--t4);
+    }
+    .res-ev {
+      font-size: 11px;
+      color: var(--t4);
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .tr-metric td {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--b1);
+    }
+    .td-metric-lbl {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--t4);
+    }
+    .td-metric {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--t3);
+    }
+    .td-metric .delta-pos, .td-metric .delta-neg {
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    /* ── OUTPUTS ─────────────────────────────────────────── */
+    .outputs-row {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 6px;
+      margin-bottom: 28px;
+    }
+    .out-lbl {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--t4);
+    }
+    .out-sep { width: 1px; height: 14px; background: var(--b1); }
+    .output-btn {
+      background: none;
+      border: 1px solid var(--b1);
+      color: var(--t3);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
       cursor: pointer;
-      user-select: none;
-      padding: 4px 0;
-      transition: color 120ms ease;
+      transition: color 100ms, border-color 100ms;
     }
-    .section-hdr:hover { color: var(--text3); }
-    .section-hdr .arrow { font-size: 9px; transition: transform 150ms ease; }
-    .collapsible { display: none; }
-    .collapsible.open { display: block; }
+    .output-btn:hover { color: var(--t2); border-color: var(--b2); }
 
-    .transcript-md {
-      font-size: 13px;
-      color: var(--text3);
-      line-height: 1.7;
-      max-height: 280px;
-      overflow-y: auto;
-      padding: 2px 0;
+    /* ── SECTIONS ─────────────────────────────────────────── */
+    .section-block { margin-bottom: 28px; }
+
+    .section-hdr {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--t4);
+      padding: 10px 0;
+      border-top: 1px solid var(--b1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .transcript-md p { margin-bottom: 8px; }
-    .transcript-md p:last-child { margin-bottom: 0; }
-    .transcript-md pre { background: var(--surface); padding: 10px 14px; border-radius: 4px; overflow-x: auto; font-size: 11px; }
-    .transcript-md code { font-family: var(--mono); font-size: 11px; color: var(--accent); }
-    .transcript-md h1,.transcript-md h2,.transcript-md h3 { font-size: 13px; font-weight: 500; color: var(--text2); margin: 10px 0 4px; }
+    .collapsible-toggle { cursor: pointer; transition: color 100ms; }
+    .collapsible-toggle:hover { color: var(--t3); }
+    .arrow { font-size: 10px; color: var(--t4); }
 
-    /* ─── FEEDBACK ───────────────────────────────────────────── */
+    .collapsible { max-height: 0; overflow: hidden; transition: max-height 220ms ease; }
+    .collapsible.open { max-height: 4000px; }
+
+    .transcript-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      padding-top: 16px;
+    }
+    .col-sub-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--t4);
+      margin-bottom: 10px;
+    }
+
+    .feedback-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      padding-top: 12px;
+    }
     .feedback-area {
       width: 100%;
       background: transparent;
       border: none;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--b1);
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
-      line-height: 1.7;
+      line-height: 1.6;
       padding: 8px 0;
       resize: none;
-      min-height: 64px;
+      min-height: 60px;
       outline: none;
-      transition: border-color 150ms ease;
+      transition: border-color 120ms;
     }
-    .feedback-area::placeholder { color: var(--text4); }
-    .feedback-area:focus { border-bottom-color: var(--border2); }
+    .feedback-area::placeholder { color: var(--t4); }
+    .feedback-area:focus { border-bottom-color: var(--b2); }
 
-    /* ─── EMPTY STATE ────────────────────────────────────────── */
-    .empty-state {
-      font-size: 13px;
-      color: var(--text4);
-      padding: 20px 0;
-      font-style: italic;
-    }
+    /* ── MARKDOWN ────────────────────────────────────────── */
+    .md-render { font-size: 13px; color: var(--t2); line-height: 1.75; }
+    .md-render p { margin-bottom: 8px; }
+    .md-render p:last-child { margin-bottom: 0; }
+    .md-render pre { background: var(--s1); padding: 12px 14px; border-radius: 4px; overflow-x: auto; margin: 8px 0; }
+    .md-render code { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+    .md-render pre code { color: var(--t2); }
+    .md-render h1 { font-size: 15px; font-weight: 500; margin: 16px 0 6px; }
+    .md-render h2 { font-size: 13px; font-weight: 500; margin: 12px 0 4px; }
+    .md-render ul, .md-render ol { padding-left: 18px; margin: 6px 0; }
+    .md-render li { margin: 3px 0; }
+    .md-render blockquote { border-left: 2px solid var(--b2); padding-left: 12px; margin: 8px 0; color: var(--t3); }
 
-    /* ─── NAV BAR ────────────────────────────────────────────── */
+    .empty-state { font-size: 13px; color: var(--t4); padding: 16px 0; }
+
+    /* ── NAV BAR ─────────────────────────────────────────── */
     #nav-bar {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
+      bottom: 0; left: 220px; right: 0;
       height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      border-top: 1px solid var(--border);
+      gap: 12px;
+      border-top: 1px solid var(--b1);
       background: var(--bg);
       z-index: 20;
     }
     #nav-bar.hidden { display: none !important; }
-
     .nav-btn {
-      background: none;
-      border: none;
-      color: var(--text3);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 5px;
-      transition: color 120ms ease, background 120ms ease;
+      background: none; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--t3);
+      cursor: pointer; padding: 5px 12px; border-radius: 4px;
+      transition: color 100ms, background 100ms;
     }
-    .nav-btn:hover:not(:disabled) { color: var(--text); background: var(--surface); }
-    .nav-btn:disabled { opacity: 0.25; cursor: default; }
-
+    .nav-btn:hover:not(:disabled) { color: var(--text); background: var(--s1); }
+    .nav-btn:disabled { opacity: 0.22; cursor: default; }
     #nav-counter {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text4);
-      min-width: 52px;
-      text-align: center;
+      font-family: var(--mono); font-size: 11px; color: var(--t4);
+      min-width: 48px; text-align: center;
     }
-
-    .nav-sep { width: 1px; height: 16px; background: var(--border); }
-
+    .nav-sep { width: 1px; height: 14px; background: var(--b1); }
     .nav-submit {
-      background: var(--accent);
-      border: none;
-      color: #fff;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 6px 16px;
-      border-radius: 5px;
-      transition: opacity 120ms ease;
+      background: var(--accent); border: none;
+      color: #fff; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+      cursor: pointer; padding: 6px 16px; border-radius: 4px; transition: opacity 100ms;
     }
-    .nav-submit:hover { opacity: 0.85; }
+    .nav-submit:hover { opacity: 0.8; }
+    .nav-hints { font-family: var(--mono); font-size: 10px; color: var(--t4); }
 
-    .nav-hints {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text4);
-    }
-
-    /* ─── BENCHMARK ──────────────────────────────────────────── */
-    #tab-benchmark {
-      overflow-y: auto;
-      padding: 48px 64px;
-      display: block !important;
-      bottom: 0 !important;
-    }
-
-    #benchmark-content {
-      max-width: 800px;
-      display: flex;
-      flex-direction: column;
-      gap: 48px;
-    }
-
-    .bk-meta {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text4);
-      letter-spacing: 0.02em;
-    }
-
-    .kpi-grid { display: flex; gap: 16px; flex-wrap: wrap; }
-
+    /* ── BENCHMARK ───────────────────────────────────────── */
+    #tab-benchmark { overflow-y: auto; padding: 48px 56px; display: block !important; }
+    #benchmark-content { max-width: 820px; display: flex; flex-direction: column; gap: 40px; }
+    .bk-meta { font-family: var(--mono); font-size: 11px; color: var(--t4); letter-spacing: 0.02em; }
+    .kpi-grid { display: flex; gap: 14px; flex-wrap: wrap; }
     .kpi-card {
-      flex: 1;
-      min-width: 180px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 20px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: var(--surface);
-      transition: border-color 120ms ease;
+      flex: 1; min-width: 180px;
+      border: 1px solid var(--b1); border-radius: 6px;
+      padding: 18px 22px; display: flex; flex-direction: column; gap: 8px;
+      background: var(--s1); transition: border-color 100ms;
     }
-    .kpi-card:hover { border-color: var(--border2); }
-
-    .kpi-cfg {
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text4);
-    }
-
-    .kpi-tokens {
-      font-family: var(--mono);
-      font-size: 26px;
-      font-weight: 500;
-      color: var(--text);
-      letter-spacing: -0.04em;
-      line-height: 1;
-    }
-
-    .kpi-stats {
-      display: flex;
-      gap: 14px;
-      font-family: var(--mono);
-      font-size: 12px;
-    }
+    .kpi-card:hover { border-color: var(--b2); }
+    .kpi-cfg { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t4); }
+    .kpi-tokens { font-family: var(--mono); font-size: 26px; font-weight: 500; color: var(--text); letter-spacing: -0.04em; line-height: 1; }
+    .kpi-stats { display: flex; gap: 12px; font-family: var(--mono); font-size: 12px; }
     .kpi-pass { color: var(--pass); }
-    .kpi-time { color: var(--text3); }
-
-    .kpi-rating {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-top: 4px;
-    }
-
-    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
+    .kpi-time { color: var(--t3); }
+    .kpi-rating { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .chart-wrap {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 20px;
-      height: 200px;
-      position: relative;
-      background: var(--surface);
+      border: 1px solid var(--b1); border-radius: 6px;
+      padding: 18px; height: 200px; position: relative; background: var(--s1);
     }
-
-    .bk-section { display: flex; flex-direction: column; gap: 16px; }
-
-    .bk-title {
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text4);
-    }
-
+    .bk-section { display: flex; flex-direction: column; gap: 14px; }
+    .bk-title { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t4); }
     .bk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-
     .bk-table th {
-      text-align: left;
-      padding: 8px 16px;
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text4);
-      border-bottom: 1px solid var(--border);
+      text-align: left; padding: 8px 14px;
+      font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--t4);
+      border-bottom: 1px solid var(--b1);
     }
-
-    .bk-table td {
-      padding: 11px 16px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-      vertical-align: middle;
-    }
-
+    .bk-table td { padding: 10px 14px; border-bottom: 1px solid var(--b1); vertical-align: middle; }
     .bk-table tr:last-child td { border-bottom: none; }
-    .bk-table tr:hover td { background: var(--surface); }
+    .bk-table tr:hover td { background: var(--s1); }
+    .bk-label { color: var(--t3) !important; font-size: 12px; }
+    .bk-std { color: var(--t4); font-family: var(--mono); font-size: 11px; }
+    .rating-badge { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 3px; }
+    .rating-excellent, .rating-efficace { background: var(--pass-d); color: var(--pass); }
+    .rating-neutre, .rating-moderate { background: rgba(245,200,66,0.1); color: var(--warn); }
+    .rating-couteux, .rating-poor { background: var(--fail-d); color: var(--fail); }
+    .notes-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .notes-list li { font-size: 13px; color: var(--t3); line-height: 1.6; padding-left: 16px; position: relative; }
+    .notes-list li::before { content: '—'; position: absolute; left: 0; color: var(--t4); }
 
-    .bk-label { color: var(--text3) !important; font-size: 12px; }
-    .bk-std { color: var(--text4); font-family: var(--mono); font-size: 11px; }
-
-    .delta-neg { color: var(--pass); font-family: var(--mono); }
-    .delta-pos { color: var(--fail); font-family: var(--mono); }
-
-    .rating-badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 2px 8px;
-      border-radius: 3px;
-    }
-    .rating-excellent,.rating-efficace { background: var(--pass-dim); color: var(--pass); }
-    .rating-neutre,.rating-moderate { background: rgba(245,200,66,0.1); color: var(--warn); }
-    .rating-couteux,.rating-poor { background: var(--fail-dim); color: var(--fail); }
-
-    .notes-list {
-      margin: 0; padding: 0 0 0 0;
-      list-style: none;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .notes-list li {
-      font-size: 13px; color: var(--text3); line-height: 1.6;
-      padding-left: 16px; position: relative;
-    }
-    .notes-list li::before { content: '—'; position: absolute; left: 0; color: var(--text4); }
-
-    /* ─── MODAL ──────────────────────────────────────────────── */
+    /* ── MODAL ───────────────────────────────────────────── */
     .modal {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.88);
@@ -647,79 +476,30 @@
       backdrop-filter: blur(4px);
     }
     .modal.hidden { display: none !important; }
-
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.97) translateY(6px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
     .modal-inner {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      width: 100%;
-      max-width: 860px;
-      max-height: 82vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      background: var(--s1); border: 1px solid var(--b2); border-radius: 8px;
+      width: 100%; max-width: 860px; max-height: 82vh;
+      display: flex; flex-direction: column; overflow: hidden;
       box-shadow: 0 24px 80px rgba(0,0,0,0.6);
       animation: modalIn 180ms ease both;
     }
-
-    @keyframes modalIn {
-      from { opacity: 0; transform: scale(0.97) translateY(8px); }
-      to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
     .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px; border-bottom: 1px solid var(--b1); flex-shrink: 0;
     }
-
-    #modal-title {
-      font-family: var(--mono);
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text2);
-      letter-spacing: 0.02em;
-    }
-
+    #modal-title { font-family: var(--mono); font-size: 12px; color: var(--t2); letter-spacing: 0.02em; }
     .modal-close {
-      background: none; border: none;
-      color: var(--text3); font-size: 16px;
-      cursor: pointer; padding: 4px;
-      line-height: 1; transition: color 120ms ease;
-      border-radius: 3px;
+      background: none; border: none; color: var(--t3); font-size: 14px;
+      cursor: pointer; padding: 3px; border-radius: 3px; transition: color 100ms, background 100ms;
     }
-    .modal-close:hover { color: var(--text); background: var(--surface2); }
-
-    #modal-body {
-      overflow-y: auto; flex: 1; padding: 24px;
-    }
-
-    .code-block {
-      font-family: var(--mono); font-size: 12px;
-      color: var(--text3); line-height: 1.7;
-      white-space: pre-wrap; word-break: break-all; margin: 0;
-    }
-
-    .md-render { font-size: 14px; color: var(--text); line-height: 1.75; }
-    .md-render p { margin-bottom: 10px; }
-    .md-render p:last-child { margin-bottom: 0; }
-    .md-render pre { background: var(--surface2); padding: 14px 16px; border-radius: 4px; overflow-x: auto; margin: 10px 0; }
-    .md-render code { font-family: var(--mono); font-size: 12px; color: var(--accent); }
-    .md-render pre code { color: var(--text2); }
-    .md-render h1 { font-size: 18px; font-weight: 500; margin: 20px 0 8px; letter-spacing: -0.02em; }
-    .md-render h2 { font-size: 15px; font-weight: 500; margin: 16px 0 6px; }
-    .md-render h3 { font-size: 13px; font-weight: 500; margin: 12px 0 4px; color: var(--text2); }
-    .md-render ul,.md-render ol { padding-left: 20px; margin: 8px 0; }
-    .md-render li { margin: 4px 0; }
-    .md-render blockquote { border-left: 2px solid var(--border2); padding-left: 14px; margin: 10px 0; color: var(--text3); }
-    .md-render a { color: var(--accent); text-decoration: none; }
-    .md-render a:hover { text-decoration: underline; }
-    .md-render table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
-    .md-render th { padding: 7px 12px; border-bottom: 1px solid var(--border); color: var(--text3); font-weight: 500; text-align: left; }
-    .md-render td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .modal-close:hover { color: var(--text); background: var(--s2); }
+    #modal-body { overflow-y: auto; flex: 1; padding: 22px; }
+    .code-block { font-family: var(--mono); font-size: 12px; color: var(--t3); line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+    .md-render { font-size: 13px; color: var(--text); line-height: 1.75; }
   </style>
 </head>
 <body>
@@ -744,28 +524,51 @@
       </aside>
 
       <div id="main-content">
+
         <div class="eval-header">
           <div id="eval-name"></div>
           <div id="eval-prompt"></div>
         </div>
-        <div class="compare-grid">
-          <div class="col-wrap">
-            <div class="col-header with-header">
-              <div class="col-header-dot"></div>
-              <span class="col-header-label">with skill</span>
-            </div>
-            <div id="col-with"></div>
+
+        <div id="stats-strip"></div>
+        <div id="compare-table-wrap"></div>
+        <div id="outputs-section"></div>
+
+        <div class="section-block">
+          <div class="section-hdr collapsible-toggle" onclick="toggleSection('tr-section')">
+            Transcripts <span class="arrow">▾</span>
           </div>
-          <div class="col-wrap">
-            <div class="col-header without-header">
-              <div class="col-header-dot"></div>
-              <span class="col-header-label">without skill</span>
+          <div class="collapsible" id="tr-section">
+            <div class="transcript-cols">
+              <div>
+                <div class="col-sub-label">with skill</div>
+                <div class="md-render" id="transcript-with"></div>
+              </div>
+              <div>
+                <div class="col-sub-label">without skill</div>
+                <div class="md-render" id="transcript-without"></div>
+              </div>
             </div>
-            <div id="col-without"></div>
           </div>
         </div>
-      </div>
 
+        <div class="section-block">
+          <div class="section-hdr">Feedback</div>
+          <div class="feedback-row">
+            <div>
+              <div class="col-sub-label">with skill</div>
+              <textarea class="feedback-area" id="fb-with" placeholder="Notes sur ce run…"
+                oninput="saveFeedback(this.getAttribute('data-run'),this.value)" data-run=""></textarea>
+            </div>
+            <div>
+              <div class="col-sub-label">without skill</div>
+              <textarea class="feedback-area" id="fb-without" placeholder="Notes sur ce run…"
+                oninput="saveFeedback(this.getAttribute('data-run'),this.value)" data-run=""></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <div id="tab-benchmark" class="tab-panel hidden">
@@ -779,7 +582,7 @@
       <div class="nav-sep"></div>
       <button class="nav-submit" onclick="submitReviews()">Soumettre</button>
       <div class="nav-sep"></div>
-      <span class="nav-hints">j/k ← → · b · Échap</span>
+      <span class="nav-hints">j/k · ← → · b · Échap</span>
     </nav>
 
   </div>
@@ -804,7 +607,6 @@
       if (str === null || str === undefined) return '';
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
-    function safeId(str) { return String(str).replace(/[^a-zA-Z0-9_-]/g,'_'); }
     function renderMd(text) {
       if (!text) return '';
       if (typeof marked !== 'undefined') return marked.parse(text);
@@ -846,74 +648,136 @@
     const feedback = {};
     EVAL_DATA.forEach(r => { feedback[r.run_id] = ''; });
 
-    function renderRunColumn(colId, run) {
-      const col = document.getElementById(colId);
-      if (!col) return;
-      if (!run) { col.innerHTML = '<p class="empty-state">Non disponible</p>'; return; }
-      const exp = run.grading?.expectations || [];
-      const passCount = exp.filter(e => e.passed).length;
-      const passRate = exp.length ? Math.round(passCount / exp.length * 100) : null;
-      const tokens = (run.timing?.total_tokens || 0).toLocaleString('fr-FR');
-      const secs = run.timing?.total_duration_seconds;
-      const passClass = passRate === 100 ? 'pass-100' : (passRate !== null && passRate >= 60) ? 'pass-mid' : 'pass-low';
-
-      let html = `<div class="run-metrics">
-        <span class="met-tokens">${tokens}</span>
-        ${secs ? `<span class="met-time">${secs}s</span>` : ''}
-        ${passRate !== null ? `<span class="met-pass ${passClass}">${passRate}%</span>` : ''}
-      </div>`;
-
-      if (exp.length) {
-        html += `<div class="assertions-list">`;
-        exp.forEach((e, i) => {
-          html += `<div class="assertion ${e.passed ? 'a-pass' : 'a-fail'}" style="animation-delay:${i*40}ms">
-            <span class="a-icon">${e.passed ? '✓' : '✗'}</span>
-            <div class="a-body">
-              <div class="a-text">${esc(e.text)}</div>
-              ${e.evidence ? `<div class="a-evidence">${esc(e.evidence)}</div>` : ''}
-            </div>
-          </div>`;
-        });
-        html += `</div>`;
-      }
-
-      if (run.outputs_list?.length) {
-        html += `<div class="outputs-row">`;
-        run.outputs_list.forEach(f => {
-          html += `<button class="output-btn" onclick="openModal('${esc(f)}','${esc(run.run_id)}')">${esc(f)} ↗</button>`;
-        });
-        html += `</div>`;
-      }
-
-      const tid = 'tr-' + safeId(run.run_id);
-      html += `<div class="section-block">
-        <div class="section-hdr collapsible-toggle" onclick="toggleSection('${tid}')">
-          Transcript <span class="arrow">▾</span>
-        </div>
-        <div class="collapsible" id="${tid}">
-          <div class="transcript-md">${renderMd(run.transcript || '(vide)')}</div>
-        </div>
-      </div>`;
-
-      html += `<div class="section-block">
-        <div class="section-hdr">Feedback</div>
-        <textarea class="feedback-area" placeholder="Notes sur ce run…"
-          oninput="saveFeedback('${run.run_id}',this.value)">${esc(feedback[run.run_id] || '')}</textarea>
-      </div>`;
-
-      col.innerHTML = html;
+    function getPassRate(run) {
+      const exp = run?.grading?.expectations || [];
+      if (!exp.length) return null;
+      return Math.round(exp.filter(e => e.passed).length / exp.length * 100);
     }
 
-    function toggleSection(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
+    function renderStatsStrip(withRun, withoutRun) {
+      const el = document.getElementById('stats-strip');
+      if (!el) return;
+      const withTokens = withRun?.timing?.total_tokens || 0;
+      const withoutTokens = withoutRun?.timing?.total_tokens || 0;
+      const withTime = withRun?.timing?.total_duration_seconds;
+      const withoutTime = withoutRun?.timing?.total_duration_seconds;
+      const withPR = getPassRate(withRun);
+      const withoutPR = getPassRate(withoutRun);
+      let tokenDelta = '', tDeltaCls = '';
+      if (withTokens && withoutTokens) {
+        const d = ((withTokens - withoutTokens) / withoutTokens * 100).toFixed(0);
+        tokenDelta = (d > 0 ? '+' : '') + d + '%';
+        tDeltaCls = d > 0 ? 'delta-pos' : 'delta-neg';
+      }
+      el.innerHTML = `
+        <div class="stat-chip"><span class="stat-lbl">with</span><span class="stat-val">${withTokens.toLocaleString('fr-FR')} tok</span></div>
+        <div class="stat-chip"><span class="stat-lbl">without</span><span class="stat-val">${withoutTokens.toLocaleString('fr-FR')} tok</span></div>
+        ${tokenDelta ? `<div class="stat-chip ${tDeltaCls}"><span class="stat-lbl">delta</span><span class="stat-val ${tDeltaCls}">${tokenDelta}</span></div>` : ''}
+        ${withTime || withoutTime ? `<div class="stat-chip"><span class="stat-lbl">time</span><span class="stat-val">${withTime||'—'}s / ${withoutTime||'—'}s</span></div>` : ''}
+        ${withPR !== null ? `<div class="stat-chip"><span class="stat-lbl">pass rate</span><span class="stat-val">${withPR}% / ${withoutPR !== null ? withoutPR+'%' : '—'}</span></div>` : ''}
+      `;
+    }
+
+    function renderCompareTable(g, withRun, withoutRun) {
+      const el = document.getElementById('compare-table-wrap');
+      if (!el) return;
+      const withExp = withRun?.grading?.expectations || [];
+      const withoutExp = withoutRun?.grading?.expectations || [];
+      const assertKeys = [];
+      const assertMap = new Map();
+      withExp.forEach(e => {
+        if (!assertMap.has(e.text)) { assertKeys.push(e.text); assertMap.set(e.text, {with: null, without: null}); }
+        assertMap.get(e.text).with = e;
+      });
+      withoutExp.forEach(e => {
+        if (!assertMap.has(e.text)) { assertKeys.push(e.text); assertMap.set(e.text, {with: null, without: null}); }
+        assertMap.get(e.text).without = e;
+      });
+      if (!assertKeys.length) { el.innerHTML = '<p class="empty-state">Aucune assertion disponible</p>'; return; }
+
+      const cols = [];
+      if (withRun) cols.push({ key: 'with_skill', run: withRun, label: 'with skill', cls: 'col-with' });
+      if (withoutRun) cols.push({ key: 'without_skill', run: withoutRun, label: 'without skill', cls: 'col-without' });
+
+      let html = `<table class="compare-table"><thead><tr>
+        <th class="th-assertion">Assertion</th>
+        ${cols.map(c => `<th class="th-cfg ${c.cls}">${esc(c.label)}</th>`).join('')}
+      </tr></thead><tbody>`;
+
+      assertKeys.forEach((text, i) => {
+        const row = assertMap.get(text);
+        html += `<tr class="tr-assert" style="animation-delay:${i*25}ms">
+          <td class="td-text">${esc(text)}</td>`;
+        cols.forEach(c => {
+          const e = c.key === 'with_skill' ? row.with : row.without;
+          const cls = e ? (e.passed ? 'td-pass' : 'td-fail') : 'td-na';
+          html += `<td class="td-result ${cls}">
+            <span class="res-icon">${e ? (e.passed ? '✓' : '✗') : '—'}</span>
+            ${e?.evidence ? `<div class="res-ev">${esc(e.evidence)}</div>` : ''}
+          </td>`;
+        });
+        html += '</tr>';
+      });
+
+      // Metric rows
+      const wt = withRun?.timing?.total_tokens || 0;
+      const wot = withoutRun?.timing?.total_tokens || 0;
+      let td = '', tdCls = '';
+      if (wt && wot) {
+        const d = ((wt - wot) / wot * 100).toFixed(0);
+        td = (d > 0 ? '+' : '') + d + '%';
+        tdCls = d > 0 ? 'delta-pos' : 'delta-neg';
+      }
+      html += `<tr class="tr-metric"><td class="td-metric-lbl">Tokens</td>`;
+      cols.forEach(c => {
+        const tok = c.run?.timing?.total_tokens || 0;
+        html += `<td class="td-metric">${tok.toLocaleString('fr-FR')}${c.key==='with_skill'&&td?` <span class="${tdCls}">${td}</span>`:''}</td>`;
+      });
+      html += '</tr>';
+
+      const wts = withRun?.timing?.total_duration_seconds, wots = withoutRun?.timing?.total_duration_seconds;
+      if (wts || wots) {
+        html += `<tr class="tr-metric"><td class="td-metric-lbl">Durée</td>`;
+        cols.forEach(c => { html += `<td class="td-metric">${c.run?.timing?.total_duration_seconds||'—'}s</td>`; });
+        html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
 
     function renderCurrentEval() {
       const g = evalGroups[currentEvalIndex];
       if (!g) return;
-      const nameEl = document.getElementById('eval-name'); if (nameEl) nameEl.textContent = g.name;
-      const promptEl = document.getElementById('eval-prompt'); if (promptEl) promptEl.innerHTML = renderMd(g.prompt || '');
-      renderRunColumn('col-with', g.configs['with_skill']);
-      renderRunColumn('col-without', g.configs['without_skill']);
+      const nameEl = document.getElementById('eval-name');
+      if (nameEl) nameEl.textContent = g.name;
+      const promptEl = document.getElementById('eval-prompt');
+      if (promptEl) promptEl.innerHTML = renderMd(g.prompt || '');
+      const withRun = g.configs['with_skill'];
+      const withoutRun = g.configs['without_skill'];
+      renderStatsStrip(withRun, withoutRun);
+      renderCompareTable(g, withRun, withoutRun);
+      // Outputs
+      const osec = document.getElementById('outputs-section');
+      if (osec) {
+        const wout = withRun?.outputs_list || [];
+        const wout2 = withoutRun?.outputs_list || [];
+        if (!wout.length && !wout2.length) { osec.innerHTML = ''; }
+        else {
+          let oh = '<div class="outputs-row">';
+          if (wout.length) { oh += '<span class="out-lbl">with:</span>'; wout.forEach(f => { oh += `<button class="output-btn" onclick="openModal('${esc(f)}','${esc(withRun.run_id)}')">${esc(f)} ↗</button>`; }); }
+          if (wout2.length) { oh += '<div class="out-sep"></div><span class="out-lbl">without:</span>'; wout2.forEach(f => { oh += `<button class="output-btn" onclick="openModal('${esc(f)}','${esc(withoutRun.run_id)}')">${esc(f)} ↗</button>`; }); }
+          oh += '</div>';
+          osec.innerHTML = oh;
+        }
+      }
+      const tw = document.getElementById('transcript-with'); if (tw) tw.innerHTML = renderMd(withRun?.transcript || '');
+      const two = document.getElementById('transcript-without'); if (two) two.innerHTML = renderMd(withoutRun?.transcript || '');
+      const fbw = document.getElementById('fb-with'); if (fbw && withRun) { fbw.value = feedback[withRun.run_id]||''; fbw.setAttribute('data-run', withRun.run_id); }
+      const fbwo = document.getElementById('fb-without'); if (fbwo && withoutRun) { fbwo.value = feedback[withoutRun.run_id]||''; fbwo.setAttribute('data-run', withoutRun.run_id); }
     }
+
+    function toggleSection(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
 
     function goToEval(index) {
       if (index < 0 || index >= evalGroups.length) return;
@@ -932,18 +796,18 @@
       const sb = document.getElementById('sidebar'); if (!sb) return;
       const label = sb.querySelector('.sidebar-label');
       const items = evalGroups.map((g,i) => {
-        const cfgs = Object.keys(g.configs);
-        const allPass = cfgs.every(c => { const e=g.configs[c]?.grading?.expectations||[]; return e.length>0&&e.every(x=>x.passed); });
-        const anyFail = cfgs.some(c => (g.configs[c]?.grading?.expectations||[]).some(x=>!x.passed));
-        const dotClass = allPass ? 'dot-pass' : anyFail ? 'dot-fail' : 'dot-neutral';
+        const withPR = getPassRate(g.configs['with_skill']);
+        const anyFail = Object.values(g.configs).some(r => (r?.grading?.expectations||[]).some(x=>!x.passed));
+        const allPass = Object.values(g.configs).every(r => { const e=r?.grading?.expectations||[]; return e.length>0&&e.every(x=>x.passed); });
+        const dotCls = allPass ? 'dot-pass' : anyFail ? 'dot-fail' : 'dot-neutral';
+        const prCls = withPR === 100 ? 'pr-100' : (withPR !== null && withPR >= 60) ? 'pr-mid' : 'pr-low';
         return `<div class="sidebar-item ${i===0?'active':''}" id="sbi-${i}" onclick="goToEval(${i})">
-          <span class="sbi-dot ${dotClass}"></span>
+          <span class="sbi-dot ${dotCls}"></span>
           <span class="sbi-name">${esc(g.name)}</span>
+          ${withPR !== null ? `<span class="sbi-pr ${prCls}">${withPR}%</span>` : ''}
         </div>`;
       }).join('');
-      sb.innerHTML = '';
-      if (label) sb.appendChild(label);
-      sb.insertAdjacentHTML('beforeend', items);
+      sb.innerHTML = ''; if (label) sb.appendChild(label); sb.insertAdjacentHTML('beforeend', items);
     }
     function updateSidebar() {
       evalGroups.forEach((_,i) => { const el=document.getElementById(`sbi-${i}`); if(el) el.classList.toggle('active', i===currentEvalIndex); });
@@ -958,16 +822,12 @@
       if(name==='benchmark') renderBenchmark();
     }
 
-    function saveFeedback(runId, value) { feedback[runId] = value; showStatus('saved'); }
-    function showStatus(msg) {
-      const el=document.getElementById('save-status'); if(!el) return;
-      el.textContent = msg; setTimeout(()=>{ el.textContent=''; }, 1500);
-    }
+    function saveFeedback(runId, value) { if (!runId) return; feedback[runId] = value; showStatus('saved'); }
+    function showStatus(msg) { const el=document.getElementById('save-status'); if(!el) return; el.textContent=msg; setTimeout(()=>{el.textContent='';},1500); }
     function submitReviews() {
       const reviews = EVAL_DATA.map(run => ({ run_id: run.run_id, feedback: feedback[run.run_id]||'', timestamp: new Date().toISOString() }));
       const blob = new Blob([JSON.stringify({reviews, status:'complete'},null,2)], {type:'application/json'});
-      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='feedback.json'; a.click();
-      showStatus('exported');
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='feedback.json'; a.click(); showStatus('exported');
     }
 
     let chartsInit = false;
@@ -980,9 +840,7 @@
       const efficiency = bk.token_efficiency || {};
       const notes = bk.analyst_notes || [];
       const meta = bk.metadata || {};
-
       let html = `<div class="bk-meta">${esc(meta.skill_name||SKILL_NAME)} · ${esc(meta.executor_model||'—')} · ${esc(meta.timestamp||'—')} · ${(meta.evals_run||[]).length} evals</div>`;
-
       html += '<div class="kpi-grid">';
       configs.forEach(cfg => {
         const s=summary[cfg]||{};
@@ -993,9 +851,7 @@
         html+=`<div class="kpi-card"><div class="kpi-cfg">${esc(cfg.replace(/_/g,' '))}</div><div class="kpi-tokens">${tokens}</div><div class="kpi-stats"><span class="kpi-pass">${pr}%</span><span class="kpi-time">${time}s</span></div>${eff?`<div class="kpi-rating rating-${esc(eff.rating)}">${esc(eff.rating)}</div>`:''}</div>`;
       });
       html += '</div>';
-
       html += `<div class="charts-row"><div class="chart-wrap"><canvas id="chart-tokens"></canvas></div><div class="chart-wrap"><canvas id="chart-pass"></canvas></div></div>`;
-
       html += `<div class="bk-section"><div class="bk-title">Comparaison</div><table class="bk-table"><thead><tr><th>Métrique</th>${configs.map(c=>`<th>${esc(c.replace(/_/g,' '))}</th>`).join('')}</tr></thead><tbody>`;
       [{label:'Tokens',key:'tokens',fmt:v=>Math.round(v).toLocaleString('fr-FR')},{label:'Pass rate',key:'pass_rate',fmt:v=>`${Math.round(v*100)}%`},{label:'Temps (s)',key:'time_seconds',fmt:v=>v.toFixed(1)}].forEach(row=>{
         html+=`<tr><td class="bk-label">${row.label}</td>${configs.map(cfg=>{const s=summary[cfg]?.[row.key]||{};return`<td>${row.fmt(s.mean||0)} <span class="bk-std">±${row.fmt(s.stddev||0)}</span></td>`;}).join('')}</tr>`;
@@ -1004,27 +860,23 @@
       const fd=Object.values(delta)[0];
       if(fd){html+=`<tr><td class="bk-label">Δ tokens</td><td colspan="${configs.length}"><span class="${fd.tokens?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(fd.tokens||'—')}</span> ${fd.rating?`<span class="rating-badge rating-${esc(fd.rating)}">${esc(fd.rating)}</span>`:''}</td></tr>`;}
       html += '</tbody></table></div>';
-
       if(Object.keys(efficiency).length){
         html+=`<div class="bk-section"><div class="bk-title">Token Efficiency</div><table class="bk-table"><thead><tr><th>Config</th><th>Réf.</th><th>Δ Tokens</th><th>Δ Pass Rate</th><th>Tok/pt</th><th>Rating</th></tr></thead><tbody>`;
         Object.entries(efficiency).forEach(([cfg,eff])=>{
-          html+=`<tr><td>${esc(cfg)}</td><td class="bk-label">${esc(eff.vs)}</td><td class="${eff.tokens_delta?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(eff.tokens_delta)}</td><td class="${eff.pass_rate_delta?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(eff.pass_rate_delta)}</td><td>${eff.tokens_per_pass_rate_point?.toLocaleString('fr-FR')||'—'}</td><td class="rating-badge rating-${esc(eff.rating)}">${esc(eff.rating)}</td></tr>`;
+          html+=`<tr><td>${esc(cfg)}</td><td class="bk-label">${esc(eff.vs)}</td><td class="${eff.tokens_delta?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(eff.tokens_delta)}</td><td class="${eff.pass_rate_delta?.startsWith('-')?'delta-neg':'delta-pos'}">${esc(eff.pass_rate_delta)}</td><td>${eff.tokens_per_pass_rate_point?.toLocaleString('fr-FR')||'—'}</td><td><span class="rating-badge rating-${esc(eff.rating)}">${esc(eff.rating)}</span></td></tr>`;
         });
         html+='</tbody></table></div>';
       }
-
       if(notes.length){html+=`<div class="bk-section"><div class="bk-title">Observations</div><ul class="notes-list">${notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`;}
-
       if(el) el.innerHTML = html;
-
       if(!chartsInit && typeof Chart !== 'undefined'){
         chartsInit = true;
         const labels=configs.map(c=>c.replace(/_/g,' '));
-        const colors=['rgba(124,106,247,0.75)','rgba(255,122,122,0.75)','rgba(78,216,122,0.75)','rgba(245,200,66,0.75)'];
-        const borders=['#7C6AF7','#FF7A7A','#4ED87A','#F5C842'];
-        const opts=(title)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:title,color:'#EDEDED',font:{size:11,family:'DM Mono, monospace',weight:'400'}}},scales:{x:{ticks:{color:'#555',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#1E1E1E'}},y:{ticks:{color:'#555',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#1E1E1E'}}}});
-        new Chart(document.getElementById('chart-tokens'),{type:'bar',data:{labels,datasets:[{label:'Tokens',data:configs.map(c=>Math.round(summary[c]?.tokens?.mean||0)),backgroundColor:colors,borderColor:borders,borderWidth:1,borderRadius:3}]},options:opts('tokens moyens')});
-        new Chart(document.getElementById('chart-pass'),{type:'bar',data:{labels,datasets:[{label:'Pass Rate (%)',data:configs.map(c=>Math.round((summary[c]?.pass_rate?.mean||0)*100)),backgroundColor:colors,borderColor:borders,borderWidth:1,borderRadius:3}]},options:opts('pass rate %')});
+        const colors=['rgba(124,106,247,0.7)','rgba(255,122,122,0.7)','rgba(78,216,122,0.7)'];
+        const borders=['#7C6AF7','#FF7A7A','#4ED87A'];
+        const opts=(title)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:title,color:'#888',font:{size:11,family:'DM Mono, monospace',weight:'400'}}},scales:{x:{ticks:{color:'#444',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#1A1A1A'}},y:{ticks:{color:'#444',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#1A1A1A'}}}});
+        new Chart(document.getElementById('chart-tokens'),{type:'bar',data:{labels,datasets:[{data:configs.map(c=>Math.round(summary[c]?.tokens?.mean||0)),backgroundColor:colors,borderColor:borders,borderWidth:1,borderRadius:3}]},options:opts('tokens moyens')});
+        new Chart(document.getElementById('chart-pass'),{type:'bar',data:{labels,datasets:[{data:configs.map(c=>Math.round((summary[c]?.pass_rate?.mean||0)*100)),backgroundColor:colors,borderColor:borders,borderWidth:1,borderRadius:3}]},options:opts('pass rate %')});
       }
     }
 
