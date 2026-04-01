@@ -1,0 +1,98 @@
+{
+  "expectations": [
+    {
+      "text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+      "passed": true,
+      "evidence": "Lignes 1-4 du SKILL.md : frontmatter délimité par `---` avec `name: csv-normalizer` et un champ `description` complet sur une seule ligne. Les deux champs requis sont présents et non vides."
+    },
+    {
+      "text": "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)",
+      "passed": true,
+      "evidence": "Section 'Contexte par défaut' (ligne 17-18) : `**Input** : /data/raw/` et `**Output** : /data/clean/`. Les deux chemins sont explicitement mentionnés avec leur rôle respectif."
+    },
+    {
+      "text": "Le skill mentionne le format Parquet comme output cible",
+      "passed": true,
+      "evidence": "Section 'Contexte par défaut' ligne 18 : `**Format cible** : Parquet (via pyarrow)`. La section 5 'Export Parquet' détaille le code de conversion avec `df.to_parquet(..., engine='pyarrow', compression='snappy')` et la convention de nommage `.parquet`."
+    },
+    {
+      "text": "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)",
+      "passed": true,
+      "evidence": "Section 4 'Normalisation des valeurs nulles' : stratégie de remplacement par `pd.NA` avec une liste explicite de représentations traitées comme nulles (`\"\"`, `\"NA\"`, `\"N/A\"`, `\"null\"`, `\"NULL\"`, etc.). La section justifie aussi l'ordre (normalisation avant typage pour éviter les faux positifs). Approche 'replace/normalize' plutôt que drop ou fill — cohérente avec un pipeline de nettoyage général."
+    },
+    {
+      "text": "Le SKILL.md fait moins de 500 lignes",
+      "passed": true,
+      "evidence": "Le fichier outputs/SKILL.md a 159 lignes (lu directement). Le transcript indique ~130 lignes (légère différence due au comptage du frontmatter). Dans les deux cas, bien en dessous de la limite de 500 lignes."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 3,
+      "Write": 3,
+      "Bash": 1,
+      "Glob": 0
+    },
+    "total_tool_calls": 7,
+    "total_steps": 5,
+    "errors_encountered": 0,
+    "output_chars": 3421,
+    "transcript_chars": 1850
+  },
+  "timing": {
+    "executor_duration_seconds": 105.3,
+    "grader_duration_seconds": null,
+    "total_duration_seconds": 105.3
+  },
+  "claims": [
+    {
+      "claim": "Le SKILL.md fait ~130 lignes",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Le transcript indique ~130 lignes mais le fichier outputs/SKILL.md a effectivement 159 lignes. L'estimation est approximative mais n'invalide pas l'assertion (toujours < 500)."
+    },
+    {
+      "claim": "La hiérarchie de types prioritise datetime avant Int64 avant Float64 avant boolean",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Table de priorité dans la section 3 du SKILL.md : datetime (1) > Int64 (2) > Float64 (3) > boolean (4) > string (5). Conforme à ce qu'annonce le transcript."
+    },
+    {
+      "claim": "La compression Parquet est Snappy",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Section 5 Export Parquet : `compression='snappy'` dans le code Python fourni."
+    },
+    {
+      "claim": "3 cas d'erreur sont couverts (fichier illisible, colonne mixte, encodage inconnu)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Section 'Gestion des erreurs' liste 4 cas : fichier illisible, colonne mixte, encodage inconnu, répertoire de destination inexistant. Le transcript annonçait 3 cas — le skill en couvre en réalité 4."
+    },
+    {
+      "claim": "Le skill utilise les types nullable pandas (Int64, Float64, boolean) plutôt que numpy",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Section 3 : `Utiliser les types nullable pandas (Int64, Float64, boolean) plutôt que numpy pour préserver la distinction null/zéro.`"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      "L'assertion 5 ('moins de 500 lignes') est triviale : un SKILL.md de 159 lignes passe aisément. Pour être utile, l'assertion devrait vérifier une fourchette (ex : entre 100 et 300 lignes) qui détecterait à la fois les skills trop courts (contenu insuffisant) et trop longs (Progressive Disclosure violée).",
+      "Aucune assertion ne couvre la qualité du workflow lui-même : les 6 étapes (découverte, analyse, détection de types, normalisation nulls, export, rapport) sont toutes présentes dans le SKILL.md et constituent la valeur principale du skill — une assertion comme 'Le skill décrit au moins 5 étapes de workflow' ou 'Le skill inclut un exemple d'invocation' serait plus discriminante.",
+      "L'assertion 4 sur la stratégie de gestion des nulls est satisfaite par une stratégie de remplacement (→ pd.NA), sans vérifier que les cas limites (drop, fill avec valeur, flag) sont au moins mentionnés ou exclus explicitement. Le skill choisit une approche et l'assume — acceptable, mais l'assertion pourrait préciser 'décrit une stratégie explicite et justifiée'."
+    ],
+    "overall": "Les 5 assertions couvrent les exigences essentielles du skill et sont vérifiables directement sur le fichier output. Pass rate 5/5 reflète un output de bonne qualité. Les principales lacunes des evals sont la trivialité de l'assertion de longueur et l'absence de vérification sur la complétude du workflow."
+  }
+}

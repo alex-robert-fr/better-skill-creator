@@ -1,0 +1,37 @@
+{
+  "run_id": "without_skill/run-1",
+  "timestamp": "2026-04-01T00:00:00Z",
+  "approach": "without_skill",
+  "input": {
+    "skill_name": "code-reviewer",
+    "original_description": "Review code changes for quality and bugs.",
+    "problem_statement": "Skill ne se déclenche pas assez souvent — manque les cas 'relecture' et 'audit de code'"
+  },
+  "output": {
+    "proposed_description": "Review, audit, or proofread code changes, files, or pull requests for quality, bugs, security issues, and best practices. Use when the user asks to review, audit, check, analyze, inspect, or proofread code, or when they request feedback on implementation quality.",
+    "word_count_original": 9,
+    "word_count_proposed": 47,
+    "expansion_ratio": 5.2
+  },
+  "quality_assessment": {
+    "covers_original_use_case": true,
+    "covers_audit_use_case": true,
+    "covers_proofreading_use_case": true,
+    "avoids_over_triggering": true,
+    "estimated_trigger_coverage_score": 8,
+    "estimated_precision_score": 7,
+    "notes": "Description enrichie avec synonymes d'action et périmètre élargi. Score conservateur car sans évaluation empirique sur un jeu de requêtes réel."
+  },
+  "methodology": {
+    "used_skill": false,
+    "steps": [
+      "Analyse du problème de déclenchement",
+      "Identification des lacunes sémantiques de la description originale",
+      "Brainstorming des variantes lexicales d'usage",
+      "Rédaction d'une description enrichie",
+      "Vérification que la description reste précise (pas trop générique)"
+    ],
+    "time_to_solution": "single_pass",
+    "reasoning_depth": "medium"
+  }
+}

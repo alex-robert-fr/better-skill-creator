@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "improve-description",
+  "prompt": "Mon skill `code-reviewer` ne se déclenche pas assez souvent. Description actuelle : 'Review code changes for quality and bugs.' Je veux qu'il se déclenche aussi quand l'utilisateur demande une relecture ou un audit de code.",
+  "assertions": [
+    {
+      "text": "La nouvelle description couvre les triggers 'relecture', 'audit' ou 'revue de code' (ou traductions anglaises)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "La nouvelle description est plus longue que l'originale ('Review code changes for quality and bugs.')",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "La nouvelle description reste concise (moins de 500 caractères)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "La réponse explique le raisonnement derrière les ajouts (quels triggers manquaient et pourquoi)",
+      "passed": null,
+      "evidence": null
+    }
+  ]
+}

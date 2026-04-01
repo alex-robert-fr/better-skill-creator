@@ -1,0 +1,13 @@
+{
+  "tool_calls": {
+    "Read": 3,
+    "Write": 1,
+    "Bash": 2
+  },
+  "total_tool_calls": 6,
+  "total_steps": 5,
+  "files_created": ["SKILL.md"],
+  "errors_encountered": 0,
+  "output_chars": 5073,
+  "transcript_chars": 2800
+}

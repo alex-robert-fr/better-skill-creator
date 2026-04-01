@@ -1,0 +1,43 @@
+{
+  "skill_name": "skill-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Je veux créer un skill pour générer des changelogs depuis les commits git. Il doit analyser les commits depuis le dernier tag, les catégoriser (feat, fix, breaking change) et produire un CHANGELOG.md structuré.",
+      "expected_output": "Un SKILL.md complet avec frontmatter valide (name + description), instructions claires sur le format CHANGELOG.md attendu, et gestion des catégories de commits.",
+      "files": [],
+      "expectations": [
+        "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+        "La description du frontmatter mentionne les triggers liés aux commits git / changelog",
+        "Le corps du skill mentionne les 3 catégories de commits : feat, fix, breaking change (ou équivalent)",
+        "Le skill décrit le format de sortie attendu pour le CHANGELOG.md (sections, structure)",
+        "Le SKILL.md fait moins de 500 lignes"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Mon skill `code-reviewer` ne se déclenche pas assez souvent. Description actuelle : 'Review code changes for quality and bugs.' Je veux qu'il se déclenche aussi quand l'utilisateur demande une relecture ou un audit de code.",
+      "expected_output": "Une description améliorée couvrant les triggers manquants (relecture, audit, revue de code) tout en restant concise.",
+      "files": [],
+      "expectations": [
+        "La nouvelle description couvre les triggers 'relecture', 'audit' ou 'revue de code' (ou traductions anglaises)",
+        "La nouvelle description est plus longue que l'originale ('Review code changes for quality and bugs.')",
+        "La nouvelle description reste concise (moins de 500 caractères)",
+        "La réponse explique le raisonnement derrière les ajouts (quels triggers manquaient et pourquoi)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "J'ai besoin d'un skill pour normaliser des fichiers CSV : détecter les colonnes, convertir les types, gérer les valeurs nulles et exporter en Parquet. Les fichiers sont dans /data/raw/, l'output dans /data/clean/.",
+      "expected_output": "Un SKILL.md complet décrivant le pipeline de normalisation CSV→Parquet, les conventions de chemins /data/raw/ et /data/clean/, et les règles de traitement des nulls.",
+      "files": [],
+      "expectations": [
+        "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+        "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)",
+        "Le skill mentionne le format Parquet comme output cible",
+        "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)",
+        "Le SKILL.md fait moins de 500 lignes"
+      ]
+    }
+  ]
+}

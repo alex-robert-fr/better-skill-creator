@@ -1,0 +1,79 @@
+{
+  "expectations": [
+    {
+      "text": "La nouvelle description couvre les triggers 'relecture', 'audit' ou 'revue de code' (ou traductions anglaises)",
+      "passed": true,
+      "evidence": "La description dans outputs/improved_description.md contient explicitement : \"the user asks to review, audit, proofread, or inspect code\" ainsi que les exemples \"relecture de mon code\" et \"audit du code\". Les trois triggers demandés ('relecture', 'audit', 'revue de code') sont couverts — 'relecture' et 'audit' en toutes lettres, 'revue de code' couverte par 'review' (traduction directe)."
+    },
+    {
+      "text": "La nouvelle description est plus longue que l'originale ('Review code changes for quality and bugs.')",
+      "passed": true,
+      "evidence": "Description originale : 42 caractères. Description nouvelle : 407 caractères. La nouvelle description est environ 9,7x plus longue que l'originale."
+    },
+    {
+      "text": "La nouvelle description reste concise (moins de 500 caractères)",
+      "passed": true,
+      "evidence": "Mesure exacte : 407 caractères pour la description proposée dans outputs/improved_description.md. Inférieur à la limite de 500 caractères."
+    },
+    {
+      "text": "La réponse explique le raisonnement derrière les ajouts (quels triggers manquaient et pourquoi)",
+      "passed": true,
+      "evidence": "La section 'Raisonnement' dans outputs/improved_description.md identifie deux problèmes de la description originale (verbe unique, absence de patterns contextuels) et fournit un tableau listant chaque pattern ajouté avec sa justification explicite (ex: \"'audit' (en/fr) — Terme courant pour une revue formelle de code\", \"'relecture' — Terme français naturel pour demander une revue\", etc.)."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 2,
+      "Write": 3,
+      "Bash": 1
+    },
+    "total_tool_calls": 6,
+    "total_steps": 4,
+    "errors_encountered": 0,
+    "output_chars": 1847,
+    "transcript_chars": 2100
+  },
+  "timing": {
+    "executor_duration_seconds": 58.4,
+    "grader_duration_seconds": null,
+    "total_duration_seconds": null
+  },
+  "claims": [
+    {
+      "claim": "La description couvre ~8 patterns distincts (synonymes + formulations conversationnelles + français + contextes implicites)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Compté dans la description : review, audit, proofread, inspect (4 verbes) + 'can you look at this code', 'relecture de mon code', 'audit du code', 'is this code good', 'give me feedback on this implementation' (5 formulations) + partage de diff/PR/fichier (1 contexte structurel) = 10 patterns, cohérent avec l'estimation '~8 patterns'."
+    },
+    {
+      "claim": "La description originale ne couvre que 'review' comme trigger principal",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Description originale : 'Review code changes for quality and bugs.' — un seul verbe d'action, aucune formulation conversationnelle, aucun contexte structurel."
+    },
+    {
+      "claim": "Le skill-writing-guide.md a été consulté et son pattern 'Fort' a été appliqué",
+      "type": "process",
+      "verified": true,
+      "evidence": "Le transcript (Étape 2) documente la lecture du guide et cite le pattern clé. La section 'Principe appliqué' dans improved_description.md référence explicitement skill-writing-guide.md."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      "Assertion 2 (longueur > originale) est triviale : n'importe quelle description améliorée sera plus longue. Elle ne discrimine pas un travail de qualité d'un simple ajout de texte sans valeur. Envisager une assertion sur la couverture des synonymes plutôt que la longueur brute.",
+      "Aucune assertion ne vérifie que la description est syntaxiquement valide / utilisable comme description de plugin (pas de markdown, pas de sauts de ligne, format texte brut). Un output mal formaté passerait toutes les assertions actuelles."
+    ],
+    "overall": "Les assertions couvrent bien les dimensions essentielles (triggers, concision, raisonnement). L'assertion de longueur est la plus faible — elle pourrait être remplacée par une assertion sur la présence d'au moins N synonymes ou formulations conversationnelles distincts."
+  }
+}

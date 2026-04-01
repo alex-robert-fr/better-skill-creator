@@ -1,0 +1,344 @@
+{
+  "metadata": {
+    "skill_name": "skill-creator",
+    "skill_path": "—",
+    "executor_model": "—",
+    "timestamp": "2026-04-01T12:01:48Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "create-changelog-skill",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 77.8,
+        "tokens": 5073,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+          "passed": true,
+          "evidence": "Lignes 1-4 du SKILL.md : frontmatter YAML valide avec 'name: changelog-generator' et 'description: Generate a structured CHANGELOG.md from git commits since the last tag...'"
+        },
+        {
+          "text": "La description du frontmatter mentionne les triggers liés aux commits git / changelog",
+          "passed": true,
+          "evidence": "Description ligne 3 : 'Generate a structured CHANGELOG.md from git commits since the last tag. Use whenever the user wants to generate, update, or create a changelog, document what changed between releases, categorize commits by type (feat, fix, breaking change), or produce release notes from git history — even without the word \"changelog\".' — couvre explicitement les commits git et multiples formulations de déclenchement."
+        },
+        {
+          "text": "Le corps du skill mentionne les 3 catégories de commits : feat, fix, breaking change (ou équivalent)",
+          "passed": true,
+          "evidence": "Table de catégorisation à l'étape 2 (lignes 38-46) : 'Breaking changes' avec patterns 'BREAKING CHANGE' et '!', 'Nouvelles fonctionnalités' avec patterns 'feat:', 'feat(...):', et 'Corrections de bugs' avec patterns 'fix:', 'fix(...):'."
+        },
+        {
+          "text": "Le skill décrit le format de sortie attendu pour le CHANGELOG.md (sections, structure)",
+          "passed": true,
+          "evidence": "Étape 4 'Générer le CHANGELOG.md' (lignes 63-117) : distingue création vs mise à jour, fournit un exemple complet avec sections '### Breaking Changes', '### Features', '### Bug Fixes', '### Chores', format des entrées, et règles de formatage explicites."
+        },
+        {
+          "text": "Le SKILL.md fait moins de 500 lignes",
+          "passed": true,
+          "evidence": "Le fichier contient 152 lignes (confirmé par lecture directe et par le transcript : '151 lignes'). Très en dessous de la limite de 500."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "create-data-transform-skill",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 105.3,
+        "tokens": 3421,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+          "passed": true,
+          "evidence": "Lignes 1-4 du SKILL.md : frontmatter délimité par `---` avec `name: csv-normalizer` et un champ `description` complet sur une seule ligne. Les deux champs requis sont présents et non vides."
+        },
+        {
+          "text": "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)",
+          "passed": true,
+          "evidence": "Section 'Contexte par défaut' (ligne 17-18) : `**Input** : /data/raw/` et `**Output** : /data/clean/`. Les deux chemins sont explicitement mentionnés avec leur rôle respectif."
+        },
+        {
+          "text": "Le skill mentionne le format Parquet comme output cible",
+          "passed": true,
+          "evidence": "Section 'Contexte par défaut' ligne 18 : `**Format cible** : Parquet (via pyarrow)`. La section 5 'Export Parquet' détaille le code de conversion avec `df.to_parquet(..., engine='pyarrow', compression='snappy')` et la convention de nommage `.parquet`."
+        },
+        {
+          "text": "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)",
+          "passed": true,
+          "evidence": "Section 4 'Normalisation des valeurs nulles' : stratégie de remplacement par `pd.NA` avec une liste explicite de représentations traitées comme nulles (`\"\"`, `\"NA\"`, `\"N/A\"`, `\"null\"`, `\"NULL\"`, etc.). La section justifie aussi l'ordre (normalisation avant typage pour éviter les faux positifs). Approche 'replace/normalize' plutôt que drop ou fill — cohérente avec un pipeline de nettoyage général."
+        },
+        {
+          "text": "Le SKILL.md fait moins de 500 lignes",
+          "passed": true,
+          "evidence": "Le fichier outputs/SKILL.md a 159 lignes (lu directement). Le transcript indique ~130 lignes (légère différence due au comptage du frontmatter). Dans les deux cas, bien en dessous de la limite de 500 lignes."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "improve-description",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 58.4,
+        "tokens": 20709,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "La nouvelle description couvre les triggers 'relecture', 'audit' ou 'revue de code' (ou traductions anglaises)",
+          "passed": true,
+          "evidence": "La description dans outputs/improved_description.md contient explicitement : \"the user asks to review, audit, proofread, or inspect code\" ainsi que les exemples \"relecture de mon code\" et \"audit du code\". Les trois triggers demandés ('relecture', 'audit', 'revue de code') sont couverts — 'relecture' et 'audit' en toutes lettres, 'revue de code' couverte par 'review' (traduction directe)."
+        },
+        {
+          "text": "La nouvelle description est plus longue que l'originale ('Review code changes for quality and bugs.')",
+          "passed": true,
+          "evidence": "Description originale : 42 caractères. Description nouvelle : 407 caractères. La nouvelle description est environ 9,7x plus longue que l'originale."
+        },
+        {
+          "text": "La nouvelle description reste concise (moins de 500 caractères)",
+          "passed": true,
+          "evidence": "Mesure exacte : 407 caractères pour la description proposée dans outputs/improved_description.md. Inférieur à la limite de 500 caractères."
+        },
+        {
+          "text": "La réponse explique le raisonnement derrière les ajouts (quels triggers manquaient et pourquoi)",
+          "passed": true,
+          "evidence": "La section 'Raisonnement' dans outputs/improved_description.md identifie deux problèmes de la description originale (verbe unique, absence de patterns contextuels) et fournit un tableau listant chaque pattern ajouté avec sa justification explicite (ex: \"'audit' (en/fr) — Terme courant pour une revue formelle de code\", \"'relecture' — Terme français naturel pour demander une revue\", etc.)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "create-changelog-skill",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 102.7,
+        "tokens": 5785,
+        "tool_calls": 9,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+          "passed": true,
+          "evidence": "Frontmatter YAML présent aux lignes 1-4 du SKILL.md : '---\\nname: pipe-changelog\\ndescription: Générer ou mettre à jour le CHANGELOG.md...\\n---'"
+        },
+        {
+          "text": "La description du frontmatter mentionne les triggers liés aux commits git / changelog",
+          "passed": true,
+          "evidence": "La description contient : 'Analyse automatiquement les commits depuis le dernier tag [...] quand l'utilisateur demande \"génère le changelog\", \"mets à jour le changelog\", \"crée le CHANGELOG depuis les commits\", ou lance /pipe-changelog.'"
+        },
+        {
+          "text": "Le corps du skill mentionne les 3 catégories de commits : feat, fix, breaking change (ou équivalent)",
+          "passed": true,
+          "evidence": "Section 2 (tableau Mapping) : 'feat, ✨' → Added ; 'fix, 🐛' → Fixed ; 'BREAKING CHANGE (corps) ou ! après le type' → Breaking Changes. Les trois catégories sont explicitement nommées."
+        },
+        {
+          "text": "Le skill décrit le format de sortie attendu pour le CHANGELOG.md (sections, structure)",
+          "passed": true,
+          "evidence": "Section 5 'Format de sortie' (lignes 96-135) : template complet Keep a Changelog avec '## [Unreleased]', '## [X.Y.Z] - YYYY-MM-DD', sections ### Breaking Changes, ### Added, ### Fixed, ### Changed, ### Deprecated, ### Removed, ### Security, et liens de comparaison en bas de fichier."
+        },
+        {
+          "text": "Le SKILL.md fait moins de 500 lignes",
+          "passed": true,
+          "evidence": "Le fichier SKILL.md fait 186 lignes (confirmé par lecture directe et par le transcript : '185 lignes, 5785 caractères')."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "create-data-transform-skill",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 93.6,
+        "tokens": 5850,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+          "passed": true,
+          "evidence": "Lignes 1-4 du SKILL.md : '---\\nname: csv-normalizer\\ndescription: Normalise des fichiers CSV bruts en détectant automatiquement les colonnes...\\n---'. Les deux champs sont présents et renseignés."
+        },
+        {
+          "text": "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)",
+          "passed": true,
+          "evidence": "Ligne 8 du SKILL.md : 'Ton rôle est de normaliser des fichiers CSV depuis `/data/raw/` et d'exporter les résultats en Parquet dans `/data/clean/`.' Également répété dans l'Étape 1 (listing des CSV dans /data/raw/) et l'Étape 5 (export dans /data/clean/)."
+        },
+        {
+          "text": "Le skill mentionne le format Parquet comme output cible",
+          "passed": true,
+          "evidence": "Présent dans le frontmatter description, dans le titre de l'Étape 5 '### Étape 5 — Export en Parquet', et dans le script Python : `pq.write_table(table, out_path, compression=\"snappy\")`."
+        },
+        {
+          "text": "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)",
+          "passed": true,
+          "evidence": "Étape 3 (lignes 39-49) : liste exhaustive des représentations nulles ('null', 'NULL', 'NA', 'N/A', etc.) et stratégie différenciée par type — 'integer/float : NaN', 'string : None', 'datetime/date : NaT', 'boolean : None'. La liste NULL_REPRESENTATIONS est également implémentée dans le script Python."
+        },
+        {
+          "text": "Le SKILL.md fait moins de 500 lignes",
+          "passed": true,
+          "evidence": "Comptage via wc -l : 225 lignes. Confirmé par metrics.json (estimated_lines: 185, sous-estimation mineure mais les deux sont bien en dessous de 500)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "improve-description",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 65.1,
+        "tokens": 1583,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "La nouvelle description couvre les triggers 'relecture', 'audit' ou 'revue de code' (ou traductions anglaises)",
+          "passed": true,
+          "evidence": "La description proposée contient explicitement 'audit' ('Review, audit, or proofread...') et la clause déclencheur 'Use when the user asks to review, audit, check, analyze, inspect, or proofread code'. 'Proofread' couvre 'relecture', 'review' couvre 'revue de code', 'audit' est présent tel quel. Confirmé dans improved_description.md et metrics.json (covers_audit_use_case: true, covers_proofreading_use_case: true)."
+        },
+        {
+          "text": "La nouvelle description est plus longue que l'originale ('Review code changes for quality and bugs.')",
+          "passed": true,
+          "evidence": "metrics.json indique word_count_original: 9 vs word_count_proposed: 47, expansion_ratio: 5.2. La description passe de ~42 caractères à 263 caractères."
+        },
+        {
+          "text": "La nouvelle description reste concise (moins de 500 caractères)",
+          "passed": true,
+          "evidence": "La description proposée mesure 263 caractères (vérifiée par comptage direct) : 'Review, audit, or proofread code changes, files, or pull requests for quality, bugs, security issues, and best practices. Use when the user asks to review, audit, check, analyze, inspect, or proofread code, or when they request feedback on implementation quality.' Bien en-dessous de la limite de 500 caractères."
+        },
+        {
+          "text": "La réponse explique le raisonnement derrière les ajouts (quels triggers manquaient et pourquoi)",
+          "passed": true,
+          "evidence": "Le fichier improved_description.md contient une section 'Raisonnement' détaillant : (1) Problème identifié avec 2 sous-points (vocabulaire limité, périmètre trop étroit), (2) Stratégie d'amélioration avec la liste des verbes ajoutés et la justification de chacun (audit, proofread, check, analyze, inspect, feedback), (3) Ce qui a été évité et pourquoi. Le transcript documente aussi l'Étape 2 'Identifier les cas manquants' avec 5 cas non couverts listés explicitement."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 80.5,
+        "stddev": 23.5663,
+        "min": 58.4,
+        "max": 105.3
+      },
+      "tokens": {
+        "mean": 9734.3333,
+        "stddev": 9540.1655,
+        "min": 3421.0,
+        "max": 20709.0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 87.1333,
+        "stddev": 19.6164,
+        "min": 65.1,
+        "max": 102.7
+      },
+      "tokens": {
+        "mean": 4406.0,
+        "stddev": 2445.0057,
+        "min": 1583.0,
+        "max": 5850.0
+      }
+    },
+    "delta": {
+      "with_skill": {
+        "vs": "without_skill",
+        "pass_rate": "+0.00",
+        "time_seconds": "-6.6",
+        "tokens": "+5328"
+      }
+    }
+  },
+  "token_efficiency": {
+    "with_skill": {
+      "vs": "without_skill",
+      "tokens_delta": "+5328",
+      "pass_rate_delta": "+0.00",
+      "tokens_per_pass_rate_point": null,
+      "rating": "neutre"
+    }
+  },
+  "analyst_notes": [
+    "Assertion non-discriminante (100% dans toutes les configs) : \"Le SKILL.md contient un frontmatter YAML avec les champs 'na...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"La description du frontmatter mentionne les triggers liés au...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"Le corps du skill mentionne les 3 catégories de commits : fe...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"Le skill décrit le format de sortie attendu pour le CHANGELO...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"Le SKILL.md fait moins de 500 lignes\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"Le skill mentionne les chemins /data/raw/ (input CSV) et /da...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"Le skill mentionne le format Parquet comme output cible\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"Le skill décrit une stratégie pour gérer les valeurs nulles ...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"La nouvelle description couvre les triggers 'relecture', 'au...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"La nouvelle description est plus longue que l'originale ('Re...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"La nouvelle description reste concise (moins de 500 caractèr...\"",
+    "Assertion non-discriminante (100% dans toutes les configs) : \"La réponse explique le raisonnement derrière les ajouts (que...\"",
+    "[with_skill] coûte +5328 tokens supplémentaires pour seulement +0.00 de gain — à revoir"
+  ]
+}

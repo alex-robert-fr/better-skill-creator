@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+      "passed": true,
+      "evidence": "Lignes 1-4 du SKILL.md : '---\\nname: csv-normalizer\\ndescription: Normalise des fichiers CSV bruts en détectant automatiquement les colonnes...\\n---'. Les deux champs sont présents et renseignés."
+    },
+    {
+      "text": "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)",
+      "passed": true,
+      "evidence": "Ligne 8 du SKILL.md : 'Ton rôle est de normaliser des fichiers CSV depuis `/data/raw/` et d'exporter les résultats en Parquet dans `/data/clean/`.' Également répété dans l'Étape 1 (listing des CSV dans /data/raw/) et l'Étape 5 (export dans /data/clean/)."
+    },
+    {
+      "text": "Le skill mentionne le format Parquet comme output cible",
+      "passed": true,
+      "evidence": "Présent dans le frontmatter description, dans le titre de l'Étape 5 '### Étape 5 — Export en Parquet', et dans le script Python : `pq.write_table(table, out_path, compression=\"snappy\")`."
+    },
+    {
+      "text": "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)",
+      "passed": true,
+      "evidence": "Étape 3 (lignes 39-49) : liste exhaustive des représentations nulles ('null', 'NULL', 'NA', 'N/A', etc.) et stratégie différenciée par type — 'integer/float : NaN', 'string : None', 'datetime/date : NaT', 'boolean : None'. La liste NULL_REPRESENTATIONS est également implémentée dans le script Python."
+    },
+    {
+      "text": "Le SKILL.md fait moins de 500 lignes",
+      "passed": true,
+      "evidence": "Comptage via wc -l : 225 lignes. Confirmé par metrics.json (estimated_lines: 185, sous-estimation mineure mais les deux sont bien en dessous de 500)."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": null,
+    "total_steps": 4,
+    "errors_encountered": 0,
+    "output_chars": 5850,
+    "transcript_chars": 2820
+  },
+  "timing": {
+    "executor_duration_seconds": 93.6,
+    "grader_duration_seconds": null,
+    "total_duration_seconds": 93.6
+  },
+  "claims": [
+    {
+      "claim": "Le script Python est directement exécutable sans modification",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Le script contient les imports, les constantes (RAW_DIR, CLEAN_DIR, NULL_REPRESENTATIONS), les fonctions utilitaires et la boucle principale. Il est syntaxiquement complet et exécutable sous réserve des dépendances pandas/pyarrow."
+    },
+    {
+      "claim": "La compression Parquet utilisée est 'snappy'",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Ligne du script : `pq.write_table(table, out_path, compression=\"snappy\")`. Justifié dans l'Étape 5 : 'Compression : snappy (équilibre taille/vitesse)'."
+    },
+    {
+      "claim": "Le skill couvre les 4 exigences fonctionnelles de la demande",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Détection colonnes (Étape 2), conversion types (infer_and_cast dans script), gestion nulles (Étape 3 + NULL_REPRESENTATIONS), export Parquet (Étape 5). Toutes présentes."
+    },
+    {
+      "claim": "Le skill est estimé à 185 lignes dans metrics.json",
+      "type": "factual",
+      "verified": false,
+      "evidence": "wc -l retourne 225 lignes — l'estimation de metrics.json (185) est inexacte d'environ 40 lignes (18% d'écart). Cela n'affecte pas les assertions, mais indique une mesure approximative dans le rapport auto-généré."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      "L'assertion 5 ('SKILL.md < 500 lignes') est trop facile : tout skill non-pathologique la satisfait. Elle ne discrimine pas la qualité. Une borne basse (ex: > 50 lignes) ou une assertion sur la densité du contenu serait plus utile.",
+      "Aucune assertion ne couvre la présence d'un script Python exécutable, qui est la valeur ajoutée principale de ce skill (observable dans l'output). C'est un angle mort important.",
+      "Aucune assertion ne vérifie la stratégie de gestion des valeurs nulles par type (NaN vs None vs NaT) — l'assertion 4 passe avec une simple mention du mot 'null' sans vérifier la profondeur de la stratégie."
+    ],
+    "overall": "Les 5 assertions passent toutes, mais deux sont trop faciles (assertion 5) ou trop larges (assertion 4) pour discriminer un bon skill d'un skill superficiel. L'absence d'assertion sur la présence d'un script exécutable est le gap le plus notable."
+  }
+}

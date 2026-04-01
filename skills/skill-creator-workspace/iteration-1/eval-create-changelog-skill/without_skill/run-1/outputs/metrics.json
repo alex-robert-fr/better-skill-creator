@@ -1,0 +1,15 @@
+{
+  "tool_calls": {
+    "Bash": 5,
+    "Read": 2,
+    "Write": 2,
+    "Glob": 0,
+    "Grep": 0
+  },
+  "total_tool_calls": 9,
+  "total_steps": 6,
+  "files_created": ["SKILL.md"],
+  "errors_encountered": 0,
+  "output_chars": 5785,
+  "transcript_chars": 4200
+}

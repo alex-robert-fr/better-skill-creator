@@ -1,0 +1,76 @@
+{
+  "run_id": "without_skill/run-1",
+  "eval": "eval-create-data-transform-skill",
+  "iteration": 1,
+  "condition": "without_skill",
+  "model": "claude-sonnet-4-6",
+  "date": "2026-04-01",
+  "skill_file": "outputs/SKILL.md",
+
+  "token_usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "note": "Non mesurable en mode subagent sans instrumentation externe"
+  },
+
+  "skill_quality": {
+    "has_frontmatter": true,
+    "has_name": true,
+    "has_description": true,
+    "has_body": true,
+    "body_language": "markdown",
+    "estimated_lines": 185,
+    "under_500_lines": true
+  },
+
+  "coverage": {
+    "detect_columns": true,
+    "type_conversion": true,
+    "null_handling": true,
+    "parquet_export": true,
+    "input_path_correct": true,
+    "output_path_correct": true,
+    "error_handling": true,
+    "python_script_included": true,
+    "output_report_defined": true,
+    "dependencies_listed": true
+  },
+
+  "coverage_score": 10,
+  "coverage_max": 10,
+  "coverage_pct": 1.0,
+
+  "structure_score": {
+    "frontmatter_valid": true,
+    "sections_present": ["Étape 1", "Étape 2", "Étape 3", "Étape 4", "Étape 5", "Script Python", "Rapport de sortie", "Gestion des erreurs", "Dépendances"],
+    "score": 9,
+    "max": 10,
+    "note": "Très complet. Légère déduction car le skill ne prévoit pas de sous-agents ni de fichiers de référence séparés, ce qui pourrait être utile pour des CSV complexes."
+  },
+
+  "actionability_score": {
+    "score": 9,
+    "max": 10,
+    "note": "Script Python directement exécutable fourni. Instructions claires étape par étape. Légère déduction car l'inférence de types peut être fragile sur des données hétérogènes sans paramétrage utilisateur."
+  },
+
+  "overall_score": 9.3,
+  "overall_max": 10,
+
+  "weaknesses": [
+    "Pas de gestion explicite des CSV multi-encodages lors de la lecture initiale (seulement au niveau de l'erreur)",
+    "Pas de support des CSV avec BOM (Byte Order Mark)",
+    "La détection des séparateurs se base sur la première ligne uniquement — peut échouer si la première ligne est un commentaire",
+    "Pas de mécanisme de configuration (seuils, types forcés par colonne) sans modifier le script"
+  ],
+
+  "strengths": [
+    "Frontmatter YAML complet et correct",
+    "Couverture exhaustive des 4 exigences : détection colonnes, conversion types, valeurs nulles, export Parquet",
+    "Chemins source/destination corrects (/data/raw/ et /data/clean/)",
+    "Script Python prêt à l'emploi avec gestion des cas limites",
+    "Tableau de gestion des erreurs clair",
+    "Normalisation des noms de colonnes incluse",
+    "Rapport de sortie défini"
+  ]
+}

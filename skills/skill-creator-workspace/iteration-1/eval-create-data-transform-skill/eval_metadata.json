@@ -1,0 +1,32 @@
+{
+  "eval_id": 3,
+  "eval_name": "create-data-transform-skill",
+  "prompt": "J'ai besoin d'un skill pour normaliser des fichiers CSV : détecter les colonnes, convertir les types, gérer les valeurs nulles et exporter en Parquet. Les fichiers sont dans /data/raw/, l'output dans /data/clean/.",
+  "assertions": [
+    {
+      "text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Le skill mentionne le format Parquet comme output cible",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)",
+      "passed": null,
+      "evidence": null
+    },
+    {
+      "text": "Le SKILL.md fait moins de 500 lignes",
+      "passed": null,
+      "evidence": null
+    }
+  ]
+}
