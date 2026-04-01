@@ -1,0 +1,8 @@
+{
+  "name": "skill-creator",
+  "description": "Create new skills, improve existing skills, and measure skill performance with token-efficiency benchmarking. Use when creating a skill from scratch, updating an existing skill, running evals, benchmarking across multiple skill versions, or optimizing a skill's trigger description.",
+  "author": {
+    "name": "alex-robert-fr",
+    "email": ""
+  }
+}
