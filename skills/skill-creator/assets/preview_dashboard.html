@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill Benchmark — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f5;--surface:#fff;--border:#e8e6dc;--text:#141413;--text-muted:#b0aea5;
+  --accent:#d97757;--accent-hover:#c4613f;
+  --green:#788c5d;--green-bg:#eef2e8;--red:#c44;--red-bg:#fceaea;
+  --blue:#6a9bcc;--blue-bg:#e8f0f8;--yellow:#d4a843;--yellow-bg:#fdf6e3;
+  --header-bg:#141413;--header-text:#faf9f5;
+  --radius:6px;--radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.15);
+  --ft:'Poppins',sans-serif;--fb:'Lora',serif;
+}
+html{height:100%}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100%;line-height:1.6;font-size:14px}
+h1,h2,h3,h4,label,.kpi-value,.badge,.btn,.tab-title{font-family:var(--ft)}
+.app-header{position:sticky;top:0;z-index:50;background:var(--header-bg);color:var(--header-text);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header-left{flex:1;min-width:0}
+.skill-name{font-family:var(--ft);font-size:1.1rem;font-weight:700;margin-bottom:2px}
+.skill-desc{font-size:.8rem;color:rgba(250,249,245,.6);max-width:500px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:all .2s}
+.skill-desc.expanded{white-space:normal;max-width:none}
+.skill-meta{display:flex;gap:16px;font-size:.7rem;color:rgba(250,249,245,.45);margin-top:4px;font-family:var(--ft);font-weight:500}
+.header-actions{display:flex;gap:8px;flex-shrink:0}
+.btn{font-family:var(--ft);font-weight:600;font-size:.75rem;padding:6px 14px;border-radius:var(--radius);border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:transparent;color:var(--header-text);border:1px solid rgba(250,249,245,.2)}
+.btn-secondary:hover{border-color:rgba(250,249,245,.4)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.tab-nav{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;gap:0;overflow-x:auto;position:sticky;top:56px;z-index:40}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:12px 20px 10px;cursor:pointer;transition:all .15s;text-align:left;flex-shrink:0}
+.tab-btn:hover{background:rgba(0,0,0,.02)}
+.tab-btn.active{border-bottom-color:var(--accent)}
+.tab-title{display:block;font-family:var(--ft);font-size:.8rem;font-weight:600;color:var(--text-muted)}
+.tab-btn.active .tab-title{color:var(--text)}
+.tab-sub{display:none;font-size:.65rem;color:var(--text-muted);margin-top:2px;font-family:var(--fb)}
+@media(min-width:1200px){.tab-sub{display:block}}
+.tab-btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:2px}
+.app-body{display:flex;min-height:calc(100vh - 100px)}
+.app-main{flex:1;max-width:1400px;margin:0 auto;padding:24px;min-width:0}
+.tab-panel{display:none;animation:fadeIn .2s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.section-title{font-family:var(--ft);font-size:1rem;font-weight:600;margin-bottom:4px}
+.section-subtitle{font-family:var(--fb);font-style:italic;font-size:.8rem;color:var(--text-muted);margin-bottom:16px;line-height:1.5}
+.section-block{margin-bottom:32px}
+.help-tip{display:inline;font-family:var(--ft);font-size:.65rem;color:var(--text-muted);cursor:help;margin-left:4px;vertical-align:super;border-bottom:1px dotted var(--text-muted);user-select:none}
+.help-tip:hover{color:var(--accent)}
+#tooltip{position:fixed;z-index:200;background:var(--header-bg);color:var(--header-text);max-width:280px;padding:.75rem;border-radius:var(--radius);box-shadow:var(--shadow-lg);font-size:.78rem;line-height:1.5;pointer-events:none;display:none;font-family:var(--fb)}
+.insight-zone{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.insight{padding:10px 16px;border-radius:var(--radius);border-left:4px solid;font-size:.85rem;line-height:1.5;background:var(--bg)}
+.insight-success{border-color:var(--green);color:#3d5a1e}
+.insight-warning{border-color:var(--yellow);color:#7a6520}
+.insight-error{border-color:var(--red);color:#8b2020}
+.insight-info{border-color:var(--blue);color:#3a6080}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:28px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow);transition:box-shadow .15s}
+.kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.kpi-label{font-family:var(--ft);font-size:.7rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;display:flex;align-items:center}
+.kpi-value{font-family:var(--ft);font-size:1.5rem;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:baseline;gap:8px}
+.trend-up{color:var(--green)}.trend-down{color:var(--red)}.trend-flat{color:var(--text-muted)}
+.kpi-sub{font-family:var(--fb);font-style:italic;font-size:.75rem;color:var(--text-muted);line-height:1.4}
+.kpi-iter{font-family:var(--ft);font-size:.6rem;font-weight:500;background:var(--blue-bg);color:var(--blue);padding:2px 6px;border-radius:3px;margin-left:auto;white-space:nowrap}
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow);margin-bottom:24px}
+.chart-header{margin-bottom:12px}
+.chart-title{font-family:var(--ft);font-size:.9rem;font-weight:600;margin-bottom:4px}
+.chart-explain{font-family:var(--fb);font-style:italic;font-size:.78rem;color:var(--text-muted);line-height:1.4;margin-bottom:8px}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:.72rem;font-family:var(--ft);color:var(--text-muted);font-weight:500}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.chart-svg{width:100%;height:auto;display:block}
+.chart-svg text{font-family:var(--ft)}
+.chart-point{cursor:pointer;transition:r .1s}
+.chart-point:hover{r:6}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:1100px){.charts-row{grid-template-columns:1fr}}
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table th{font-family:var(--ft);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);text-align:left;padding:8px 10px;border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:0;background:var(--surface);z-index:2}
+.data-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tbody tr:hover{background:rgba(0,0,0,.015)}
+.data-table .sortable{cursor:pointer;user-select:none}
+.data-table .sortable:hover{color:var(--text)}
+.sort-icon{margin-left:4px;font-size:.6rem}
+.scroll-table{max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);position:relative}
+.scroll-table::after{content:'';position:absolute;bottom:0;left:0;right:0;height:20px;background:linear-gradient(transparent,rgba(250,249,245,.8));pointer-events:none}
+.row-avg{font-weight:600;background:var(--bg)!important}
+.cell-pass{color:var(--green)}.cell-fail{color:var(--red)}.cell-icon{font-weight:700;cursor:default}
+.best-col{background:var(--green-bg)!important}
+.badge{font-family:var(--ft);font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-green{background:var(--green-bg);color:var(--green)}.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-best{background:var(--green-bg);color:var(--green);font-size:.6rem}
+.eval-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden;transition:all .15s;border-left:3px solid transparent}
+.eval-card:hover{box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.eval-card.verdict-approve{border-left-color:var(--green)}
+.eval-card.verdict-reject{border-left-color:var(--red)}
+.eval-card.verdict-comment{border-left-color:var(--blue)}
+.eval-card-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none}
+.eval-card-header:hover{background:rgba(0,0,0,.01)}
+.eval-toggle{font-size:.7rem;color:var(--text-muted);transition:transform .2s;flex-shrink:0;width:16px;text-align:center}
+.eval-card.open .eval-toggle{transform:rotate(90deg)}
+.eval-name{flex:1;font-family:var(--ft);font-size:.82rem;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eval-progress{flex:0 0 120px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:flex}
+.eval-progress-pass{background:var(--green);height:100%;transition:width .3s}
+.eval-progress-fail{background:var(--red);height:100%}
+.eval-rate{font-family:var(--ft);font-size:.78rem;font-weight:600;width:48px;text-align:right;flex-shrink:0}
+.eval-card-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+.eval-card.open .eval-card-body{display:block}
+.filter-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-size:.8rem}
+.filter-bar label{font-family:var(--ft);font-size:.72rem;font-weight:500;color:var(--text-muted)}
+.filter-bar select,.filter-bar input{font-family:var(--fb);font-size:.8rem;padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--accent)}
+.filter-count{margin-left:auto;font-family:var(--ft);font-size:.72rem;color:var(--text-muted);font-weight:500}
+.cm-grid{display:inline-grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto auto;gap:0;font-family:var(--ft)}
+.cm-corner{width:60px;height:40px}
+.cm-col-label{padding:8px 12px;text-align:center;font-size:.7rem;font-weight:600;color:var(--text-muted);border-bottom:2px solid var(--border)}
+.cm-row-label{padding:8px 12px;text-align:right;font-size:.7rem;font-weight:600;color:var(--text-muted);border-right:2px solid var(--border);display:flex;align-items:center;justify-content:flex-end}
+.cm-cell{min-width:100px;padding:16px;text-align:center;border-radius:var(--radius);margin:2px}
+.cm-cell-value{font-size:1.3rem;font-weight:700}.cm-cell-label{font-size:.68rem;margin-top:4px;font-weight:500}
+.cm-correct{background:var(--green-bg);color:var(--green)}.cm-error{background:var(--red-bg);color:var(--red)}
+.cm-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.cm-axis-label{font-family:var(--ft);font-size:.72rem;font-weight:600;color:var(--text-muted)}
+.heatmap-container{overflow-x:auto}
+.heatmap-cell{width:48px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--ft);font-size:.6rem;font-weight:600;color:#fff;cursor:default;transition:transform .1s}
+.heatmap-cell:hover{transform:scale(1.15);z-index:2;position:relative}
+.hm-legend{display:flex;align-items:center;gap:8px;margin-top:8px}
+.hm-gradient{width:120px;height:10px;border-radius:5px;background:linear-gradient(to right,#c44,#d4a843,#788c5d)}
+.hm-legend-text{font-family:var(--ft);font-size:.62rem;color:var(--text-muted)}
+.sparkline{vertical-align:middle}
+.diff-add{background:#d4edda;color:#155724;padding:0 2px;border-radius:2px}
+.diff-del{background:#f8d7da;color:#721c24;padding:0 2px;border-radius:2px;text-decoration:line-through}
+.pagination{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.78rem}
+.pagination button{font-family:var(--ft);font-size:.72rem;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;color:var(--text);transition:all .15s}
+.pagination button:hover{border-color:var(--accent);color:var(--accent)}
+.pagination button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pagination button:disabled{opacity:.4;cursor:default}
+.page-info{color:var(--text-muted);font-family:var(--ft);font-size:.72rem}
+.search-wrap{position:relative}
+.search-wrap input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--fb);font-size:.82rem;background:var(--surface);color:var(--text);outline:none}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem}
+.collapsible-header{display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 0;user-select:none}
+.collapsible-header:hover{color:var(--accent)}
+.collapsible-arrow{transition:transform .2s;font-size:.7rem;color:var(--text-muted)}
+.collapsible-content{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.collapsible-open .collapsible-arrow{transform:rotate(90deg)}
+.collapsible-open .collapsible-content{max-height:5000px}
+.empty-state{text-align:center;padding:60px 24px;max-width:700px;margin:0 auto}
+.empty-title{font-family:var(--ft);font-size:1.4rem;font-weight:700;margin-bottom:8px}
+.empty-sub{font-family:var(--fb);color:var(--text-muted);margin-bottom:32px;font-size:.95rem}
+.empty-flow{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:32px;flex-wrap:wrap}
+.flow-step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;text-align:center;box-shadow:var(--shadow);min-width:150px}
+.flow-num{font-family:var(--ft);font-size:.7rem;font-weight:700;color:var(--accent);margin-bottom:4px}
+.flow-label{font-family:var(--ft);font-size:.8rem;font-weight:600}
+.flow-arrow{font-size:1.2rem;color:var(--text-muted)}
+.empty-json{text-align:left;background:var(--header-bg);color:var(--header-text);padding:16px 20px;border-radius:var(--radius);font-size:.72rem;line-height:1.6;overflow-x:auto;margin-bottom:24px;font-family:'Courier New',monospace;max-height:300px;overflow-y:auto}
+.copy-hint{font-family:var(--ft);font-size:.68rem;color:var(--text-muted);margin-bottom:16px}
+
+/* ═══ DECISION LAYER ═══ */
+/* Iteration picker */
+.iter-picker{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:20px;box-shadow:var(--shadow)}
+.iter-picker-title{font-family:var(--ft);font-size:.85rem;font-weight:600;margin-bottom:8px}
+.iter-picker-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.iter-pick-btn{font-family:var(--ft);font-size:.78rem;font-weight:600;padding:8px 16px;border:2px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;transition:all .15s;color:var(--text-muted)}
+.iter-pick-btn:hover{border-color:var(--accent);color:var(--text)}
+.iter-pick-btn.picked{border-color:var(--accent);background:var(--accent);color:#fff}
+.iter-pick-summary{font-family:var(--fb);font-style:italic;font-size:.78rem;color:var(--text-muted);min-height:1.4em}
+
+/* Priority list */
+.prio-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:20px;box-shadow:var(--shadow)}
+.prio-title{font-family:var(--ft);font-size:.85rem;font-weight:600;margin-bottom:8px}
+.prio-list{list-style:none;display:flex;flex-direction:column;gap:4px}
+.prio-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);cursor:grab;transition:all .15s;user-select:none}
+.prio-item:active{cursor:grabbing;box-shadow:var(--shadow-lg);transform:scale(1.02)}
+.prio-item.drag-over{border-color:var(--accent);background:rgba(217,119,87,.06)}
+.prio-handle{color:var(--text-muted);font-size:.8rem;cursor:grab;flex-shrink:0}
+.prio-rank{font-family:var(--ft);font-size:.72rem;font-weight:700;color:var(--accent);width:18px;text-align:center;flex-shrink:0}
+.prio-label{font-family:var(--ft);font-size:.78rem;font-weight:500;flex:1}
+.prio-arrows{display:flex;flex-direction:column;gap:0;flex-shrink:0}
+.prio-arrow{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.6rem;padding:0 4px;line-height:1}
+.prio-arrow:hover{color:var(--accent)}
+.prio-hint{font-family:var(--fb);font-style:italic;font-size:.72rem;color:var(--text-muted);margin-top:8px}
+
+/* Annotation buttons */
+.anno-btns{display:flex;gap:4px;flex-shrink:0;margin-left:8px}
+.anno-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;transition:all .15s;opacity:.5}
+.anno-btn:hover{opacity:1;transform:scale(1.1)}
+.anno-btn.active{opacity:1;border-color:transparent}
+.anno-btn.active-approve{background:var(--green-bg);border-color:var(--green)}
+.anno-btn.active-reject{background:var(--red-bg);border-color:var(--red)}
+.anno-btn.active-comment{background:var(--blue-bg);border-color:var(--blue)}
+.anno-comment{margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--fb);font-size:.82rem;width:100%;resize:vertical;min-height:48px;outline:none;background:var(--bg)}
+.anno-comment:focus{border-color:var(--accent)}
+.eval-validated{font-family:var(--ft);font-size:.68rem;color:var(--green);font-weight:600;margin-left:8px}
+
+/* Pin assertion */
+.pin-btn{background:none;border:none;cursor:pointer;font-size:.72rem;opacity:.3;transition:all .15s;padding:2px 4px}
+.pin-btn:hover{opacity:.7}.pin-btn.pinned{opacity:1}
+
+/* Trigger decisions */
+.trig-select{font-family:var(--ft);font-size:.72rem;padding:3px 6px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);outline:none}
+.trig-select:focus{border-color:var(--accent)}
+.trig-count{font-family:var(--ft);font-size:.72rem;color:var(--text-muted);margin-top:8px;padding:8px 0}
+
+/* Decision sidebar */
+.sidebar-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:60;writing-mode:vertical-rl;text-orientation:mixed;background:var(--accent);color:#fff;border:none;border-radius:var(--radius) 0 0 var(--radius);padding:12px 8px;cursor:pointer;font-family:var(--ft);font-size:.72rem;font-weight:600;box-shadow:var(--shadow-lg);transition:all .15s;display:flex;align-items:center;gap:6px}
+.sidebar-toggle:hover{padding-right:12px;background:var(--accent-hover)}
+.sidebar-badge{writing-mode:horizontal-tb;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:.6rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+.decision-sidebar{position:fixed;right:0;top:0;bottom:0;width:340px;background:var(--surface);border-left:1px solid var(--border);z-index:55;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.1)}
+.decision-sidebar.open{transform:translateX(0)}
+.sb-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-title{font-family:var(--ft);font-size:.9rem;font-weight:700}
+.sb-close{background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--text-muted);padding:4px}
+.sb-close:hover{color:var(--text)}
+.sb-body{flex:1;overflow-y:auto;padding:16px 20px}
+.sb-section{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.sb-section:last-child{border-bottom:none}
+.sb-label{font-family:var(--ft);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px}
+.sb-value{font-family:var(--ft);font-size:.82rem;font-weight:500}
+.sb-note{font-family:var(--fb);font-style:italic;font-size:.72rem;color:var(--text-muted)}
+.sb-textarea{width:100%;min-height:80px;padding:8px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--fb);font-size:.82rem;resize:vertical;outline:none;background:var(--bg)}
+.sb-textarea:focus{border-color:var(--accent)}
+.sb-charcount{font-family:var(--ft);font-size:.6rem;color:var(--text-muted);text-align:right;margin-top:2px}
+.sb-footer{padding:12px 20px;border-top:1px solid var(--border);flex-shrink:0}
+.sb-export-btn{width:100%;justify-content:center;padding:10px;font-size:.82rem}
+.sb-export-btn.ready{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,119,87,.3)}50%{box-shadow:0 0 0 6px rgba(217,119,87,0)}}
+/* Completeness */
+.completeness-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.completeness-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s}
+.completeness-text{font-family:var(--ft);font-size:.68rem;color:var(--text-muted)}
+.completeness-todo{font-family:var(--fb);font-size:.72rem;color:var(--text-muted);margin-top:4px;line-height:1.5}
+.sb-shortcuts{font-family:var(--ft);font-size:.6rem;color:var(--text-muted);margin-top:12px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);max-width:700px;width:90%;max-height:80vh;display:flex;flex-direction:column}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:var(--ft);font-size:1rem;font-weight:700}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:.82rem;line-height:1.7;max-height:400px;overflow-y:auto;white-space:pre-wrap;font-family:var(--fb)}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-top:1px solid var(--border)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--header-bg);color:var(--header-text);padding:10px 20px;border-radius:var(--radius);font-family:var(--ft);font-size:.82rem;font-weight:500;box-shadow:var(--shadow-lg);z-index:110;transition:transform .3s ease;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* Chosen iteration column highlight */
+.chosen-col{background:rgba(217,119,87,.06)!important;border-top:2px solid var(--accent)}
+</style>
+</head>
+<body>
+<header id="app-header" class="app-header"></header>
+<nav id="tab-nav" class="tab-nav" role="tablist" aria-label="Sections du dashboard"></nav>
+<div class="app-body">
+<main id="app-main" class="app-main"></main>
+</div>
+<div id="tooltip"></div>
+<button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()" style="display:none">Mes decisions <span class="sidebar-badge" id="sb-badge">0</span></button>
+<aside id="decision-sidebar" class="decision-sidebar"></aside>
+<div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()"></div>
+<div id="toast" class="toast"></div>
+<script>
+const BENCHMARK_DATA = {"metadata": {"generated_at": "2026-04-01T12:01:48Z", "skill_name": "skill-creator", "skill_description": "Plugin Claude pour creer et ameliorer des skills de facon plus efficace.", "model": "—", "total_iterations": 1, "runs_per_config": 1}, "iterations": [{"iteration": 1, "description": "Version initiale du skill-creator avec instructions de creation de skills.", "description_hash": "initial", "configs": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "values": [1.0, 1.0, 1.0]}, "time_seconds": {"mean": 80.5, "stddev": 19.2418, "values": [77.8, 105.3, 58.4]}, "tokens": {"mean": 9734.3333, "stddev": 7789.5125, "values": [5073, 3421, 20709]}, "cost_usd": {"mean": 0.0973, "stddev": 0.0779, "values": [0.0507, 0.0342, 0.2071]}}, "without_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "values": [1.0, 1.0, 1.0]}, "time_seconds": {"mean": 87.1333, "stddev": 16.0167, "values": [102.7, 93.6, 65.1]}, "tokens": {"mean": 4406.0, "stddev": 1996.3388, "values": [5785, 5850, 1583]}, "cost_usd": {"mean": 0.0441, "stddev": 0.02, "values": [0.0579, 0.0585, 0.0158]}}}, "delta": {"pass_rate": "+0%", "time_seconds": "-6.6s", "tokens": "+5328", "cost_usd": "$+0.0532"}}], "evals": [{"eval_id": 1, "eval_name": "create-changelog-skill", "category": "skill_creation", "runs": [{"iteration": 1, "configuration": "with_skill", "run_number": 1, "pass_rate": 1.0, "passed": 5, "total": 5, "time_seconds": 77.8, "tokens": 5073, "cost_usd": 0.0507, "errors": 0, "expectations": [{"text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'", "passed": true, "evidence": "Lignes 1-4 du SKILL.md : frontmatter YAML valide avec 'name: changelog-generator' et 'description: Generate a structured CHANGELOG.md from git commits since the last tag...'"}, {"text": "La description du frontmatter mentionne les triggers liés aux commits git / changelog", "passed": true, "evidence": "Description ligne 3 : 'Generate a structured CHANGELOG.md from git commits since the last tag. Use whenever the user wants to generate, update, or create a changelog, document what changed between releases, categorize commits by type (feat, fix, breaking change), or produce release notes from git history — even without the word \"changelog\".' — couvre explicitement les commits git et multiples formulations de déclenchement."}, {"text": "Le corps du skill mentionne les 3 catégories de commits : feat, fix, breaking change (ou équivalent)", "passed": true, "evidence": "Table de catégorisation à l'étape 2 (lignes 38-46) : 'Breaking changes' avec patterns 'BREAKING CHANGE' et '!', 'Nouvelles fonctionnalités' avec patterns 'feat:', 'feat(...):', et 'Corrections de bugs' avec patterns 'fix:', 'fix(...):'."}, {"text": "Le skill décrit le format de sortie attendu pour le CHANGELOG.md (sections, structure)", "passed": true, "evidence": "Étape 4 'Générer le CHANGELOG.md' (lignes 63-117) : distingue création vs mise à jour, fournit un exemple complet avec sections '### Breaking Changes', '### Features', '### Bug Fixes', '### Chores', format des entrées, et règles de formatage explicites."}, {"text": "Le SKILL.md fait moins de 500 lignes", "passed": true, "evidence": "Le fichier contient 152 lignes (confirmé par lecture directe et par le transcript : '151 lignes'). Très en dessous de la limite de 500."}]}, {"iteration": 1, "configuration": "without_skill", "run_number": 1, "pass_rate": 1.0, "passed": 5, "total": 5, "time_seconds": 102.7, "tokens": 5785, "cost_usd": 0.0579, "errors": 0, "expectations": [{"text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'", "passed": true, "evidence": "Frontmatter YAML présent aux lignes 1-4 du SKILL.md : '---\\nname: pipe-changelog\\ndescription: Générer ou mettre à jour le CHANGELOG.md...\\n---'"}, {"text": "La description du frontmatter mentionne les triggers liés aux commits git / changelog", "passed": true, "evidence": "La description contient : 'Analyse automatiquement les commits depuis le dernier tag [...] quand l'utilisateur demande \"génère le changelog\", \"mets à jour le changelog\", \"crée le CHANGELOG depuis les commits\", ou lance /pipe-changelog.'"}, {"text": "Le corps du skill mentionne les 3 catégories de commits : feat, fix, breaking change (ou équivalent)", "passed": true, "evidence": "Section 2 (tableau Mapping) : 'feat, ✨' → Added ; 'fix, 🐛' → Fixed ; 'BREAKING CHANGE (corps) ou ! après le type' → Breaking Changes. Les trois catégories sont explicitement nommées."}, {"text": "Le skill décrit le format de sortie attendu pour le CHANGELOG.md (sections, structure)", "passed": true, "evidence": "Section 5 'Format de sortie' (lignes 96-135) : template complet Keep a Changelog avec '## [Unreleased]', '## [X.Y.Z] - YYYY-MM-DD', sections ### Breaking Changes, ### Added, ### Fixed, ### Changed, ### Deprecated, ### Removed, ### Security, et liens de comparaison en bas de fichier."}, {"text": "Le SKILL.md fait moins de 500 lignes", "passed": true, "evidence": "Le fichier SKILL.md fait 186 lignes (confirmé par lecture directe et par le transcript : '185 lignes, 5785 caractères')."}]}]}, {"eval_id": 3, "eval_name": "create-data-transform-skill", "category": "skill_creation", "runs": [{"iteration": 1, "configuration": "with_skill", "run_number": 1, "pass_rate": 1.0, "passed": 5, "total": 5, "time_seconds": 105.3, "tokens": 3421, "cost_usd": 0.0342, "errors": 0, "expectations": [{"text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'", "passed": true, "evidence": "Lignes 1-4 du SKILL.md : frontmatter délimité par `---` avec `name: csv-normalizer` et un champ `description` complet sur une seule ligne. Les deux champs requis sont présents et non vides."}, {"text": "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)", "passed": true, "evidence": "Section 'Contexte par défaut' (ligne 17-18) : `**Input** : /data/raw/` et `**Output** : /data/clean/`. Les deux chemins sont explicitement mentionnés avec leur rôle respectif."}, {"text": "Le skill mentionne le format Parquet comme output cible", "passed": true, "evidence": "Section 'Contexte par défaut' ligne 18 : `**Format cible** : Parquet (via pyarrow)`. La section 5 'Export Parquet' détaille le code de conversion avec `df.to_parquet(..., engine='pyarrow', compression='snappy')` et la convention de nommage `.parquet`."}, {"text": "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)", "passed": true, "evidence": "Section 4 'Normalisation des valeurs nulles' : stratégie de remplacement par `pd.NA` avec une liste explicite de représentations traitées comme nulles (`\"\"`, `\"NA\"`, `\"N/A\"`, `\"null\"`, `\"NULL\"`, etc.). La section justifie aussi l'ordre (normalisation avant typage pour éviter les faux positifs). Approche 'replace/normalize' plutôt que drop ou fill — cohérente avec un pipeline de nettoyage général."}, {"text": "Le SKILL.md fait moins de 500 lignes", "passed": true, "evidence": "Le fichier outputs/SKILL.md a 159 lignes (lu directement). Le transcript indique ~130 lignes (légère différence due au comptage du frontmatter). Dans les deux cas, bien en dessous de la limite de 500 lignes."}]}, {"iteration": 1, "configuration": "without_skill", "run_number": 1, "pass_rate": 1.0, "passed": 5, "total": 5, "time_seconds": 93.6, "tokens": 5850, "cost_usd": 0.0585, "errors": 0, "expectations": [{"text": "Le SKILL.md contient un frontmatter YAML avec les champs 'name' et 'description'", "passed": true, "evidence": "Lignes 1-4 du SKILL.md : '---\\nname: csv-normalizer\\ndescription: Normalise des fichiers CSV bruts en détectant automatiquement les colonnes...\\n---'. Les deux champs sont présents et renseignés."}, {"text": "Le skill mentionne les chemins /data/raw/ (input CSV) et /data/clean/ (output)", "passed": true, "evidence": "Ligne 8 du SKILL.md : 'Ton rôle est de normaliser des fichiers CSV depuis `/data/raw/` et d'exporter les résultats en Parquet dans `/data/clean/`.' Également répété dans l'Étape 1 (listing des CSV dans /data/raw/) et l'Étape 5 (export dans /data/clean/)."}, {"text": "Le skill mentionne le format Parquet comme output cible", "passed": true, "evidence": "Présent dans le frontmatter description, dans le titre de l'Étape 5 '### Étape 5 — Export en Parquet', et dans le script Python : `pq.write_table(table, out_path, compression=\"snappy\")`."}, {"text": "Le skill décrit une stratégie pour gérer les valeurs nulles (drop, fill, flag...)", "passed": true, "evidence": "Étape 3 (lignes 39-49) : liste exhaustive des représentations nulles ('null', 'NULL', 'NA', 'N/A', etc.) et stratégie différenciée par type — 'integer/float : NaN', 'string : None', 'datetime/date : NaT', 'boolean : None'. La liste NULL_REPRESENTATIONS est également implémentée dans le script Python."}, {"text": "Le SKILL.md fait moins de 500 lignes", "passed": true, "evidence": "Comptage via wc -l : 225 lignes. Confirmé par metrics.json (estimated_lines: 185, sous-estimation mineure mais les deux sont bien en dessous de 500)."}]}]}, {"eval_id": 2, "eval_name": "improve-description", "category": "description_improvement", "runs": [{"iteration": 1, "configuration": "with_skill", "run_number": 1, "pass_rate": 1.0, "passed": 4, "total": 4, "time_seconds": 58.4, "tokens": 20709, "cost_usd": 0.2071, "errors": 0, "expectations": [{"text": "La nouvelle description couvre les triggers 'relecture', 'audit' ou 'revue de code' (ou traductions anglaises)", "passed": true, "evidence": "La description dans outputs/improved_description.md contient explicitement : \"the user asks to review, audit, proofread, or inspect code\" ainsi que les exemples \"relecture de mon code\" et \"audit du code\". Les trois triggers demandés ('relecture', 'audit', 'revue de code') sont couverts — 'relecture' et 'audit' en toutes lettres, 'revue de code' couverte par 'review' (traduction directe)."}, {"text": "La nouvelle description est plus longue que l'originale ('Review code changes for quality and bugs.')", "passed": true, "evidence": "Description originale : 42 caractères. Description nouvelle : 407 caractères. La nouvelle description est environ 9,7x plus longue que l'originale."}, {"text": "La nouvelle description reste concise (moins de 500 caractères)", "passed": true, "evidence": "Mesure exacte : 407 caractères pour la description proposée dans outputs/improved_description.md. Inférieur à la limite de 500 caractères."}, {"text": "La réponse explique le raisonnement derrière les ajouts (quels triggers manquaient et pourquoi)", "passed": true, "evidence": "La section 'Raisonnement' dans outputs/improved_description.md identifie deux problèmes de la description originale (verbe unique, absence de patterns contextuels) et fournit un tableau listant chaque pattern ajouté avec sa justification explicite (ex: \"'audit' (en/fr) — Terme courant pour une revue formelle de code\", \"'relecture' — Terme français naturel pour demander une revue\", etc.)."}]}, {"iteration": 1, "configuration": "without_skill", "run_number": 1, "pass_rate": 1.0, "passed": 4, "total": 4, "time_seconds": 65.1, "tokens": 1583, "cost_usd": 0.0158, "errors": 0, "expectations": [{"text": "La nouvelle description couvre les triggers 'relecture', 'audit' ou 'revue de code' (ou traductions anglaises)", "passed": true, "evidence": "La description proposée contient explicitement 'audit' ('Review, audit, or proofread...') et la clause déclencheur 'Use when the user asks to review, audit, check, analyze, inspect, or proofread code'. 'Proofread' couvre 'relecture', 'review' couvre 'revue de code', 'audit' est présent tel quel. Confirmé dans improved_description.md et metrics.json (covers_audit_use_case: true, covers_proofreading_use_case: true)."}, {"text": "La nouvelle description est plus longue que l'originale ('Review code changes for quality and bugs.')", "passed": true, "evidence": "metrics.json indique word_count_original: 9 vs word_count_proposed: 47, expansion_ratio: 5.2. La description passe de ~42 caractères à 263 caractères."}, {"text": "La nouvelle description reste concise (moins de 500 caractères)", "passed": true, "evidence": "La description proposée mesure 263 caractères (vérifiée par comptage direct) : 'Review, audit, or proofread code changes, files, or pull requests for quality, bugs, security issues, and best practices. Use when the user asks to review, audit, check, analyze, inspect, or proofread code, or when they request feedback on implementation quality.' Bien en-dessous de la limite de 500 caractères."}, {"text": "La réponse explique le raisonnement derrière les ajouts (quels triggers manquaient et pourquoi)", "passed": true, "evidence": "Le fichier improved_description.md contient une section 'Raisonnement' détaillant : (1) Problème identifié avec 2 sous-points (vocabulaire limité, périmètre trop étroit), (2) Stratégie d'amélioration avec la liste des verbes ajoutés et la justification de chacun (audit, proofread, check, analyze, inspect, feedback), (3) Ce qui a été évité et pourquoi. Le transcript documente aussi l'Étape 2 'Identifier les cas manquants' avec 5 cas non couverts listés explicitement."}]}]}], "trigger_eval": null};
+
+/* ═══ SAMPLE DATA ═══ */
+function getSampleData(){
+  const sd=n=>(n*1103515245+12345)&0x7fffffff;
+  let s=42;const rng=()=>{s=sd(s);return s/0x7fffffff};
+  const vary=(base,spread)=>Math.max(0,Math.min(1,base+(rng()-.5)*spread));
+  const iters=[
+    {it:1,ws:.72,wo:.58,desc:"Generate PDF documents with proper formatting including headers, tables, and images."},
+    {it:2,ws:.83,wo:.60,desc:"Generate PDF documents with proper formatting including headers, tables, and images. Ensure consistent spacing and correct font embedding."},
+    {it:3,ws:.78,wo:.59,desc:"Generate PDF documents with proper formatting including headers, tables, and images. Ensure consistent spacing."},
+    {it:4,ws:.92,wo:.61,desc:"Generate well-structured PDF documents with headers, tables, images, and consistent spacing. Use semantic structure for accessibility. Handle edge cases like empty sections gracefully."}
+  ];
+  const evalDefs=[
+    {id:1,name:"PDF headers and structure",cat:"output_quality",base:[.7,.85,.8,.95]},
+    {id:2,name:"Table formatting correct",cat:"output_quality",base:[.6,.75,.7,.9]},
+    {id:3,name:"Empty input handling",cat:"edge_cases",base:[.8,.85,.9,1]},
+    {id:4,name:"Large dataset performance",cat:"performance",base:[.5,.65,.55,.85]},
+    {id:5,name:"Custom layout support",cat:"features",base:[.65,.8,.75,.92]},
+    {id:6,name:"Image embedding works",cat:"features",base:[.8,.9,.85,.95]}
+  ];
+  const expectations=[
+    ["PDF has correct headers","Table of contents present","No formatting errors","Images embedded correctly","File size under 5MB"],
+    ["Column alignment correct","Cell borders visible","Header row styled","Data types formatted","No overflow"],
+    ["Returns error message","No crash on null","Empty PDF generated","Graceful degradation","Error logged"],
+    ["Processes in under 30s","Memory under 512MB","No timeout errors","All rows included","Pagination works"],
+    ["Two-column layout works","Custom margins applied","Footer on every page","Page numbers correct","Landscape mode works"],
+    ["PNG images embedded","JPEG images embedded","SVG converted","Alt text preserved","Images scaled correctly"]
+  ];
+  const triggerQueries=[
+    {q:"Create a PDF report from this CSV data",should:true},{q:"Generate a printable document with charts",should:true},
+    {q:"Export this table as a formatted PDF",should:true},{q:"Build a PDF invoice from these line items",should:true},
+    {q:"Make a PDF presentation from these slides",should:true},{q:"Convert this markdown to a styled PDF",should:true},
+    {q:"Create a PDF certificate for this user",should:true},{q:"Generate a PDF receipt for this order",should:true},
+    {q:"Build a multi-page PDF report",should:true},{q:"Create a PDF with embedded images and tables",should:true},
+    {q:"Render this HTML content as PDF",should:true},{q:"Generate a PDF brochure layout",should:true},
+    {q:"Export this data as downloadable PDF",should:true},{q:"Create a PDF form with fillable fields",should:true},
+    {q:"Build a PDF portfolio document",should:true},{q:"Compress this large PDF file",should:true},
+    {q:"Merge these documents into one PDF",should:true},{q:"Add watermark to this PDF",should:true},
+    {q:"Create an accessible PDF document",should:true},{q:"Generate PDF with custom headers and footers",should:true},
+    {q:"Write a fibonacci function in Python",should:false},{q:"Explain recursion with examples",should:false},
+    {q:"Create a REST API endpoint",should:false},{q:"Debug this JavaScript code",should:false},
+    {q:"Write unit tests for my function",should:false},{q:"Set up a Docker container",should:false},
+    {q:"Optimize this SQL query",should:false},{q:"Refactor this class hierarchy",should:false},
+    {q:"Write a README for this project",should:false},{q:"Create a React component",should:false},
+    {q:"Implement binary search",should:false},{q:"Design a database schema",should:false},
+    {q:"Write a shell script",should:false},{q:"Parse this JSON data",should:false},
+    {q:"Create a CSS animation",should:false},{q:"Implement OAuth flow",should:false},
+    {q:"Write a regex pattern",should:false},{q:"Set up CI/CD pipeline",should:false},
+    {q:"Implement caching strategy",should:false},{q:"Create a WebSocket server",should:false}
+  ];
+  const triggerIters=iters.map((it,idx)=>{
+    const errorCount=[6,3,2,1][idx];
+    const shouldT=triggerQueries.filter(q=>q.should),shouldNot=triggerQueries.filter(q=>!q.should);
+    const fnCount=Math.min(errorCount,Math.ceil(errorCount/2)),fpCount=errorCount-fnCount;
+    const tp=shouldT.length-fnCount,fn_=fnCount,tn=shouldNot.length-fpCount,fp=fpCount;
+    const prec=tp/(tp+fp),rec=tp/(tp+fn_),f1=2*prec*rec/(prec+rec);
+    const misclass=[];
+    for(let i=0;i<fpCount;i++)misclass.push({query:shouldNot[i].q,expected:false,got:true});
+    for(let i=0;i<fnCount;i++)misclass.push({query:shouldT[shouldT.length-1-i].q,expected:true,got:false});
+    return{iteration:it.it,description:it.desc,accuracy:(tp+tn)/40,precision:prec,recall:rec,f1,
+      true_positives:tp,false_positives:fp,true_negatives:tn,false_negatives:fn_,
+      confusion:[[tn,fp],[fn_,tp]],misclassified:misclass};
+  });
+  const iterations=iters.map((it,idx)=>{
+    const wsVals=[vary(it.ws,.08),vary(it.ws,.08),vary(it.ws,.08)];
+    const woVals=[vary(it.wo,.08),vary(it.wo,.08),vary(it.wo,.08)];
+    const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+    const std=a=>{const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length)};
+    const wsTk=[4500+rng()*1500,4500+rng()*1500,4500+rng()*1500];
+    const woTk=[5500+rng()*1500,5500+rng()*1500,5500+rng()*1500];
+    const wsTime=[10+rng()*8,10+rng()*8,10+rng()*8],woTime=[14+rng()*8,14+rng()*8,14+rng()*8];
+    const mws=mean(wsVals),mwo=mean(woVals);
+    const prev=idx>0?iters[idx-1]:null;
+    const dpr=prev?((mws-prev.ws)*100).toFixed(0):'+0';
+    return{iteration:it.it,description:it.desc,description_hash:'h'+idx,
+      configs:{
+        with_skill:{pass_rate:{mean:mws,stddev:std(wsVals),values:wsVals},time_seconds:{mean:mean(wsTime),stddev:std(wsTime),values:wsTime},tokens:{mean:mean(wsTk),stddev:std(wsTk),values:wsTk},cost_usd:{mean:mean(wsTk)*0.00001,stddev:std(wsTk)*0.00001,values:wsTk.map(t=>t*0.00001)}},
+        without_skill:{pass_rate:{mean:mwo,stddev:std(woVals),values:woVals},time_seconds:{mean:mean(woTime),stddev:std(woTime),values:woTime},tokens:{mean:mean(woTk),stddev:std(woTk),values:woTk},cost_usd:{mean:mean(woTk)*0.00001,stddev:std(woTk)*0.00001,values:woTk.map(t=>t*0.00001)}}
+      },
+      delta:{pass_rate:(dpr>=0?'+':'')+dpr+'%',time_seconds:((mean(wsTime)-mean(woTime)).toFixed(1))+'s',tokens:Math.round(mean(wsTk)-mean(woTk)).toString(),cost_usd:'$'+(mean(wsTk)*0.00001-mean(woTk)*0.00001).toFixed(4)}
+    };
+  });
+  const evals=evalDefs.map((ed,ei)=>{
+    const runs=[];
+    for(let it=1;it<=4;it++){
+      for(const cfg of['with_skill','without_skill']){
+        const bRate=cfg==='with_skill'?ed.base[it-1]:ed.base[it-1]*0.75;
+        for(let r=1;r<=3;r++){
+          const rate=vary(bRate,.12);const total=5;const passed=Math.round(rate*total);
+          const exps=expectations[ei].map((text,xi)=>{const p=xi<passed;return{text,passed:p,evidence:p?'Verified successfully':'Failed: criteria not met'}});
+          runs.push({iteration:it,configuration:cfg,run_number:r,pass_rate:passed/total,passed,total,
+            time_seconds:8+rng()*12,tokens:3000+rng()*3000,cost_usd:.03+rng()*.03,errors:total-passed,expectations:exps});
+        }
+      }
+    }
+    return{eval_id:ed.id,eval_name:ed.name,category:ed.cat,runs};
+  });
+  return{metadata:{generated_at:"2025-07-15T14:30:00Z",skill_name:"pdf-generator",
+    skill_description:"Generates well-formatted PDF documents from structured data with tables, charts, and custom layouts.",
+    model:"claude-sonnet-4-20250514",total_iterations:4,runs_per_config:3},
+    iterations,evals,trigger_eval:{total_queries:40,should_trigger:20,should_not_trigger:20,iterations:triggerIters}};
+}
+
+/* ═══ STATE ═══ */
+const S={data:null,tab:'overview',rendered:new Set(),raw:{page:1,perPage:25,sort:null,dir:'asc',filter:''},sidebarOpen:false};
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+
+/* ═══ DECISIONS STATE ═══ */
+const D={
+  chosen_iteration:null,
+  priorities:['quality','speed','cost','trigger_accuracy'],
+  thresholds:{quality:null,speed:null,cost:null,trigger_accuracy:null},
+  eval_annotations:{},
+  critical_assertions:new Set(),
+  trigger_decisions:{},
+  general_notes:''
+};
+const PRIO_META={quality:{icon:'🎯',label:'Qualite (pass rate)'},speed:{icon:'⚡',label:'Vitesse (temps)'},cost:{icon:'🪙',label:'Cout (tokens)'},trigger_accuracy:{icon:'🎯',label:'Precision du trigger (F1)'}};
+
+function lsKey(){return'benchmark_decisions_'+(S.data?.metadata?.skill_name||'default')}
+function saveDecisions(){
+  try{
+    const o={...D,critical_assertions:[...D.critical_assertions]};
+    localStorage.setItem(lsKey(),JSON.stringify(o));
+  }catch(e){}
+  updateSidebar();
+}
+function loadDecisions(){
+  try{
+    const raw=localStorage.getItem(lsKey());
+    if(!raw)return 0;
+    const o=JSON.parse(raw);
+    if(o.chosen_iteration!=null)D.chosen_iteration=o.chosen_iteration;
+    if(o.priorities)D.priorities=o.priorities;
+    if(o.thresholds)Object.assign(D.thresholds,o.thresholds);
+    if(o.eval_annotations)D.eval_annotations=o.eval_annotations;
+    if(o.critical_assertions)D.critical_assertions=new Set(o.critical_assertions);
+    if(o.trigger_decisions)D.trigger_decisions=o.trigger_decisions;
+    if(o.general_notes)D.general_notes=o.general_notes;
+    const count=decisionCount();
+    return count;
+  }catch(e){return 0}
+}
+function decisionCount(){
+  let c=0;
+  if(D.chosen_iteration!=null)c++;
+  c+=Object.keys(D.eval_annotations).length;
+  c+=D.critical_assertions.size;
+  c+=Object.keys(D.trigger_decisions).length;
+  if(D.general_notes.trim())c++;
+  return c;
+}
+function onDecision(){
+  saveDecisions();
+  S.rendered.delete('overview');
+  S.rendered.delete('iterations');
+}
+
+/* ═══ UTILS ═══ */
+const U={
+  pct:v=>(v*100).toFixed(1)+'%',
+  sec:v=>v.toFixed(1)+'s',
+  tok:v=>v>=1000?(v/1000).toFixed(1)+'k':Math.round(v).toString(),
+  usd:v=>'$'+v.toFixed(3),
+  esc:s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'),
+  heatColor(v){
+    const r1=[204,68,68],r2=[212,168,67],r3=[120,140,93];let rgb;
+    if(v<=.5){const t=v/.5;rgb=r1.map((c,i)=>Math.round(c+(r2[i]-c)*t))}
+    else{const t=(v-.5)/.5;rgb=r2.map((c,i)=>Math.round(c+(r3[i]-c)*t))}
+    return`rgb(${rgb.join(',')})`;
+  },
+  trendHTML(curr,prev,higherIsBetter=true){
+    if(prev==null)return'<span class="trend-flat">—</span>';
+    const d=curr-prev;const better=higherIsBetter?d>0.005:d<-0.005;const worse=higherIsBetter?d<-0.005:d>0.005;
+    if(better)return`<span class="trend-up">↑</span>`;if(worse)return`<span class="trend-down">↓</span>`;
+    return'<span class="trend-flat">→</span>';
+  },
+  mean:a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0
+};
+
+/* ═══ TOOLTIPS ═══ */
+const TIPS={
+  pass_rate:'Pourcentage de tests reussis. 100% = tous les tests passent.',
+  stddev:'Ecart-type : mesure la variabilite entre les runs. Plus c\'est petit, plus les resultats sont stables.',
+  tokens:'Nombre de "mots" consommes par le modele. Plus de tokens = plus lent et plus cher.',
+  precision:'Parmi les fois ou le skill s\'est active, combien de fois c\'etait justifie.',
+  recall:'Parmi les cas ou le skill aurait du s\'activer, combien de fois il l\'a fait.',
+  f1:'Moyenne harmonique de Precision et Recall. Un score unique qui resume les deux.',
+  confusion:'Tableau qui croise les predictions vs la realite pour voir les types d\'erreurs.',
+  delta:'Difference par rapport a la valeur precedente. Vert = amelioration, rouge = regression.',
+  sparkline:'Mini-graphique montrant la repartition des resultats individuels de chaque run.',
+  config:'"With skill" = le modele utilise les instructions du skill. "Without" = le modele vanilla sans aide.'
+};
+function tipHTML(key){const t=TIPS[key]||key;return`<span class="help-tip" data-tip="${U.esc(t)}" tabindex="0">(?)</span>`}
+(function initTooltips(){
+  const el=$('#tooltip');
+  document.addEventListener('mouseover',e=>{
+    const tip=e.target.closest('.help-tip');if(!tip)return;
+    el.textContent=tip.dataset.tip;el.style.display='block';
+    const r=tip.getBoundingClientRect(),tr=el.getBoundingClientRect();
+    let left=r.left+r.width/2-tr.width/2,top=r.top-tr.height-8;
+    if(top<4)top=r.bottom+8;if(left<4)left=4;
+    if(left+tr.width>window.innerWidth-4)left=window.innerWidth-tr.width-4;
+    el.style.left=left+'px';el.style.top=top+'px';
+  });
+  document.addEventListener('mouseout',e=>{if(e.target.closest('.help-tip'))el.style.display='none'});
+})();
+function showChartTip(evt,html){
+  const el=$('#tooltip');el.innerHTML=html;el.style.display='block';
+  const tr=el.getBoundingClientRect();
+  let left=evt.clientX-tr.width/2,top=evt.clientY-tr.height-12;
+  if(top<4)top=evt.clientY+12;if(left<4)left=4;
+  el.style.left=left+'px';el.style.top=top+'px';
+}
+function hideChartTip(){$('#tooltip').style.display='none'}
+
+/* ═══ TOAST ═══ */
+function showToast(msg,dur=2500){
+  const t=$('#toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+/* ═══ SVG CHARTS ═══ */
+const CH={
+  line(container,config){
+    const{w=580,h=280,datasets,xLabels,yFmt=v=>v.toFixed(1),yLabel=''}=config;
+    const p={t:20,r:20,b:35,l:52};const cw=w-p.l-p.r,ch=h-p.t-p.b;
+    const allV=datasets.flatMap(d=>d.values);
+    let yMin=Math.min(...allV),yMax=Math.max(...allV);
+    const range=yMax-yMin||.1;yMin=Math.max(0,yMin-range*.15);yMax=yMax+range*.15;
+    const xS=i=>p.l+(xLabels.length>1?(i/(xLabels.length-1))*cw:cw/2);
+    const yS=v=>p.t+ch-((v-yMin)/(yMax-yMin))*ch;
+    let svg=`<svg viewBox="0 0 ${w} ${h}" class="chart-svg">`;
+    for(let i=0;i<=5;i++){
+      const val=yMin+(yMax-yMin)*(i/5),py=yS(val);
+      svg+=`<line x1="${p.l}" y1="${py}" x2="${w-p.r}" y2="${py}" stroke="var(--border)" stroke-width=".5"/>`;
+      svg+=`<text x="${p.l-6}" y="${py+3}" text-anchor="end" fill="var(--text-muted)" font-size="9">${yFmt(val)}</text>`;
+    }
+    xLabels.forEach((l,i)=>{svg+=`<text x="${xS(i)}" y="${h-6}" text-anchor="middle" fill="var(--text-muted)" font-size="9">${l}</text>`});
+    if(yLabel)svg+=`<text x="10" y="${p.t+ch/2}" text-anchor="middle" transform="rotate(-90,10,${p.t+ch/2})" fill="var(--text-muted)" font-size="9">${yLabel}</text>`;
+    datasets.forEach(ds=>{
+      if(ds.values.length<2){ds.values.forEach((v,i)=>{svg+=`<circle cx="${xS(i)}" cy="${yS(v)}" r="4" fill="${ds.color}" class="chart-point" data-v="${yFmt(v)}" data-l="${U.esc(ds.label)}" data-x="${xLabels[i]}"/>`});return}
+      const pts=ds.values.map((v,i)=>`${xS(i)},${yS(v)}`).join(' ');
+      svg+=`<polyline points="${pts}" fill="none" stroke="${ds.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      ds.values.forEach((v,i)=>{svg+=`<circle cx="${xS(i)}" cy="${yS(v)}" r="4" fill="${ds.color}" stroke="var(--surface)" stroke-width="2" class="chart-point" data-v="${yFmt(v)}" data-l="${U.esc(ds.label)}" data-x="${xLabels[i]}"/>`});
+    });
+    svg+='</svg>';container.innerHTML=svg;
+    container.querySelectorAll('.chart-point').forEach(pt=>{
+      pt.addEventListener('mouseenter',e=>showChartTip(e,`<strong>${pt.dataset.l}</strong><br>${pt.dataset.x}: ${pt.dataset.v}`));
+      pt.addEventListener('mouseleave',hideChartTip);
+    });
+  },
+  bar(container,config){
+    const{w=580,h=260,groups,yFmt=v=>v.toFixed(1)}=config;
+    const p={t:20,r:20,b:40,l:52};const cw=w-p.l-p.r,ch=h-p.t-p.b;
+    const allV=groups.flatMap(g=>g.bars.map(b=>b.value));const yMax=Math.max(...allV)*1.15;
+    const yS=v=>p.t+ch-(v/yMax)*ch;const gw=cw/groups.length;const bw=Math.min(gw*.3,40);
+    let svg=`<svg viewBox="0 0 ${w} ${h}" class="chart-svg">`;
+    for(let i=0;i<=4;i++){const val=yMax*(i/4),py=yS(val);
+      svg+=`<line x1="${p.l}" y1="${py}" x2="${w-p.r}" y2="${py}" stroke="var(--border)" stroke-width=".5"/>`;
+      svg+=`<text x="${p.l-6}" y="${py+3}" text-anchor="end" fill="var(--text-muted)" font-size="9">${yFmt(val)}</text>`;
+    }
+    groups.forEach((g,gi)=>{const gx=p.l+gi*gw+gw/2;const nb=g.bars.length;const totalW=nb*bw+(nb-1)*4;
+      g.bars.forEach((b,bi)=>{const bx=gx-totalW/2+bi*(bw+4);const by=yS(b.value);const bh=p.t+ch-by;
+        svg+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="${b.color}" rx="3" class="chart-point" data-v="${yFmt(b.value)}" data-l="${U.esc(b.label)}" data-x="${g.label}"/>`;
+        svg+=`<text x="${bx+bw/2}" y="${by-5}" text-anchor="middle" fill="var(--text)" font-size="8" font-weight="600">${yFmt(b.value)}</text>`;
+      });
+      svg+=`<text x="${gx}" y="${h-6}" text-anchor="middle" fill="var(--text-muted)" font-size="9">${g.label}</text>`;
+    });
+    svg+='</svg>';container.innerHTML=svg;
+    container.querySelectorAll('.chart-point').forEach(pt=>{
+      pt.addEventListener('mouseenter',e=>showChartTip(e,`<strong>${pt.dataset.l}</strong><br>${pt.dataset.x}: ${pt.dataset.v}`));
+      pt.addEventListener('mouseleave',hideChartTip);
+    });
+  },
+  sparkline(values,mean){
+    const w=60,h=18,pad=3;const min=Math.min(...values),max=Math.max(...values);const range=max-min||.1;
+    const x=i=>pad+(values.length>1?(i/(values.length-1))*(w-2*pad):(w-2*pad)/2);
+    const y=v=>pad+(h-2*pad)-(((v-min+range*.1)/(range*1.2))*(h-2*pad));
+    let svg=`<svg class="sparkline" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+    if(mean!=null){const my=y(mean);svg+=`<line x1="${pad}" y1="${my}" x2="${w-pad}" y2="${my}" stroke="var(--text-muted)" stroke-width=".5" stroke-dasharray="2,2"/>`}
+    values.forEach((v,i)=>{svg+=`<circle cx="${x(i)}" cy="${y(v)}" r="2.5" fill="var(--blue)" stroke="var(--surface)" stroke-width=".5"/>`});
+    return svg+'</svg>';
+  }
+};
+
+/* ═══ VERDICTS ═══ */
+function generateVerdicts(d){
+  const v=[];const last=d.iterations[d.iterations.length-1];
+  const prev=d.iterations.length>1?d.iterations[d.iterations.length-2]:null;
+  const ws=last.configs.with_skill;
+  if(ws.pass_rate.mean>=.9)v.push({type:'success',text:`✓ Skill performant — ${U.pct(ws.pass_rate.mean)} de taux de reussite a l'iteration ${last.iteration}`});
+  else if(ws.pass_rate.mean>=.7)v.push({type:'info',text:`→ Performance correcte — ${U.pct(ws.pass_rate.mean)} de taux de reussite, marge d'amelioration`});
+  else v.push({type:'error',text:`✗ Performance faible — ${U.pct(ws.pass_rate.mean)} de taux de reussite`});
+  if(prev){const pc=prev.configs.with_skill.pass_rate.mean,cc=ws.pass_rate.mean;
+    if(cc<pc-.02)v.push({type:'warning',text:`⚠ Regression : pass rate ${U.pct(pc)} → ${U.pct(cc)}`})}
+  if(d.trigger_eval?.iterations?.length){const lt=d.trigger_eval.iterations[d.trigger_eval.iterations.length-1];
+    if(lt.f1<.8)v.push({type:'error',text:`✗ Trigger F1 = ${lt.f1.toFixed(2)} — trop de faux positifs/negatifs`});
+    else if(lt.f1>=.95)v.push({type:'success',text:`✓ Trigger excellent — F1 = ${lt.f1.toFixed(2)}`})}
+  if(ws.pass_rate.stddev>ws.pass_rate.mean*.15)v.push({type:'warning',text:`⚡ Variance elevee (±${U.pct(ws.pass_rate.stddev)})`});
+  return v;
+}
+
+/* ═══ WORD DIFF ═══ */
+function wordDiff(a,b){
+  const wa=a.split(/(\s+)/),wb=b.split(/(\s+)/);const n=wa.length,m=wb.length;
+  const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=1;i<=n;i++)for(let j=1;j<=m;j++){dp[i][j]=wa[i-1]===wb[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1])}
+  const result=[];let i=n,j=m;
+  while(i>0||j>0){
+    if(i>0&&j>0&&wa[i-1]===wb[j-1]){result.unshift({type:'same',text:wa[i-1]});i--;j--}
+    else if(j>0&&(i===0||dp[i][j-1]>=dp[i-1][j])){result.unshift({type:'add',text:wb[j-1]});j--}
+    else{result.unshift({type:'del',text:wa[i-1]});i--}
+  }
+  return result.map(r=>{
+    if(r.type==='add')return`<span class="diff-add">${U.esc(r.text)}</span>`;
+    if(r.type==='del')return`<span class="diff-del">${U.esc(r.text)}</span>`;
+    return U.esc(r.text);
+  }).join('');
+}
+
+/* ═══ RENDER: HEADER ═══ */
+function renderHeader(){
+  const m=S.data.metadata;
+  $('#app-header').innerHTML=`
+    <div class="header-left">
+      <div class="skill-name">${U.esc(m.skill_name)}</div>
+      <div class="skill-desc" onclick="this.classList.toggle('expanded')" title="Cliquer pour developper">${U.esc(m.skill_description||'')}</div>
+      <div class="skill-meta">
+        <span>Modele : ${U.esc(m.model)}</span>
+        <span>${m.total_iterations} iterations · ${m.runs_per_config} runs/config</span>
+        <span>${new Date(m.generated_at).toLocaleString('fr-FR')}</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-primary" onclick="exportJSON()">Export Report</button>
+    </div>`;
+  $('#sidebar-toggle').style.display='';
+}
+
+/* ═══ RENDER: TAB NAV ═══ */
+function renderTabNav(){
+  const tabs=[
+    {id:'overview',title:'Overview',sub:'Vue rapide des resultats'},
+    {id:'iterations',title:'Iterations',sub:'Comparer les versions'},
+    {id:'evals',title:'Evals Detail',sub:'Resultats test par test'},
+    {id:'trigger',title:'Trigger Analysis',sub:'Le skill se declenche-t-il au bon moment ?'},
+    {id:'raw',title:'Raw Data',sub:'Tout exporter'}
+  ];
+  $('#tab-nav').innerHTML=tabs.map((t,i)=>`
+    <button class="tab-btn${i===0?' active':''}" data-tab="${t.id}" role="tab" aria-selected="${i===0}" tabindex="${i===0?0:-1}" onclick="switchTab('${t.id}')">
+      <span class="tab-title">${t.title}</span><span class="tab-sub">${t.sub}</span>
+    </button>`).join('');
+  $('#tab-nav').addEventListener('keydown',e=>{
+    const btns=[...$('#tab-nav').querySelectorAll('.tab-btn')];const idx=btns.indexOf(e.target);if(idx<0)return;let next=-1;
+    if(e.key==='ArrowRight')next=(idx+1)%btns.length;
+    else if(e.key==='ArrowLeft')next=(idx-1+btns.length)%btns.length;
+    else if(e.key==='Enter'||e.key===' '){e.preventDefault();switchTab(e.target.dataset.tab);return}
+    if(next>=0){e.preventDefault();btns[next].focus()}
+  });
+  $('#tab-nav').style.display='';
+  $('#app-main').innerHTML=tabs.map((t,i)=>`<section id="tab-${t.id}" class="tab-panel${i===0?' active':''}" role="tabpanel"></section>`).join('');
+}
+function switchTab(id){
+  $$('.tab-btn').forEach(b=>{const a=b.dataset.tab===id;b.classList.toggle('active',a);b.setAttribute('aria-selected',a);b.tabIndex=a?0:-1});
+  $$('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
+  S.tab=id;
+  if(!S.rendered.has(id)){
+    const renderers={overview:renderOverview,iterations:renderIterations,evals:renderEvals,trigger:renderTrigger,raw:renderRaw};
+    if(renderers[id])renderers[id]();
+    S.rendered.add(id);
+  }
+}
+
+/* ═══ RENDER: OVERVIEW ═══ */
+function renderOverview(){
+  const d=S.data,el=$('#tab-overview');
+  const last=d.iterations[d.iterations.length-1];
+  const ws=last.configs.with_skill;
+  const bestIter=d.iterations.reduce((a,b)=>b.configs.with_skill.pass_rate.mean>a.configs.with_skill.pass_rate.mean?b:a);
+  const bestF1=d.trigger_eval?d.trigger_eval.iterations.reduce((a,b)=>b.f1>a.f1?b:a):null;
+  const avgTime=U.mean(d.iterations.map(it=>it.configs.with_skill.time_seconds.mean));
+  const avgTok=U.mean(d.iterations.map(it=>it.configs.with_skill.tokens.mean));
+  const avgCost=U.mean(d.iterations.map(it=>it.configs.with_skill.cost_usd.mean));
+  const prevIter=d.iterations.length>1?d.iterations[d.iterations.length-2]:null;
+  const verdicts=generateVerdicts(d);
+
+  let html='';
+  if(verdicts.length){html+='<div class="insight-zone">';verdicts.forEach(v=>{html+=`<div class="insight insight-${v.type}">${v.text}</div>`});html+='</div>'}
+
+  /* Iteration picker */
+  html+=`<div class="iter-picker">
+    <div class="iter-picker-title">🏆 Quelle iteration veux-tu garder ?</div>
+    <div class="iter-picker-btns">`;
+  d.iterations.forEach(it=>{
+    const sel=D.chosen_iteration===it.iteration;
+    html+=`<button class="iter-pick-btn${sel?' picked':''}" onclick="pickIteration(${it.iteration})">${sel?'★ ':''}Iter ${it.iteration}</button>`;
+  });
+  html+=`</div><div class="iter-pick-summary" id="iter-summary">`;
+  if(D.chosen_iteration!=null){
+    const ci=d.iterations.find(it=>it.iteration===D.chosen_iteration);
+    if(ci){const cws=ci.configs.with_skill;const te=d.trigger_eval?.iterations?.find(t=>t.iteration===ci.iteration);
+      html+=`Pass: ${U.pct(cws.pass_rate.mean)} | Time: ${U.sec(cws.time_seconds.mean)} | Tokens: ${U.tok(cws.tokens.mean)}${te?' | F1: '+te.f1.toFixed(3):''}`;
+    }
+  }else{html+=`Regarde les donnees ci-dessous pour te decider. Tu pourras toujours changer.`}
+  html+=`</div></div>`;
+
+  /* Priorities */
+  html+=`<div class="prio-block">
+    <div class="prio-title">⚖️ Qu'est-ce qui compte le plus pour toi ?</div>
+    <ul class="prio-list" id="prio-list">`;
+  D.priorities.forEach((k,i)=>{
+    const m=PRIO_META[k];
+    html+=`<li class="prio-item" draggable="true" data-prio="${k}">
+      <span class="prio-handle">⠿</span>
+      <span class="prio-rank">${i+1}</span>
+      <span class="prio-label">${m.icon} ${m.label}</span>
+      <span class="prio-arrows">
+        <button class="prio-arrow" onclick="movePrio('${k}',-1)" ${i===0?'disabled':''}>▲</button>
+        <button class="prio-arrow" onclick="movePrio('${k}',1)" ${i===D.priorities.length-1?'disabled':''}>▼</button>
+      </span>
+    </li>`;
+  });
+  html+=`</ul>
+    <div class="prio-hint">La priorite #1 sera le critere principal d'optimisation. Glisser-deposer ou utiliser les fleches ↑↓.</div>
+  </div>`;
+
+  /* KPIs */
+  html+=`<div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Best Pass Rate ${tipHTML('pass_rate')}</div>
+      <div class="kpi-value">${U.pct(bestIter.configs.with_skill.pass_rate.mean)} ${prevIter?U.trendHTML(ws.pass_rate.mean,prevIter.configs.with_skill.pass_rate.mean):''}<span class="kpi-iter">iter. ${bestIter.iteration}</span></div>
+      <div class="kpi-sub">Le meilleur taux de reussite parmi toutes les iterations.</div></div>
+    <div class="kpi-card"><div class="kpi-label">Best Trigger F1 ${tipHTML('f1')}</div>
+      <div class="kpi-value">${bestF1?bestF1.f1.toFixed(3):'N/A'} ${bestF1&&d.trigger_eval.iterations.length>1?U.trendHTML(d.trigger_eval.iterations[d.trigger_eval.iterations.length-1].f1,d.trigger_eval.iterations[0].f1):''} ${bestF1?`<span class="kpi-iter">iter. ${bestF1.iteration}</span>`:''}</div>
+      <div class="kpi-sub">Score combine precision/rappel du declenchement. Au-dessus de 0.9 = excellent.</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Time</div>
+      <div class="kpi-value">${U.sec(avgTime)} ${prevIter?U.trendHTML(last.configs.with_skill.time_seconds.mean,prevIter.configs.with_skill.time_seconds.mean,false):''}</div>
+      <div class="kpi-sub">Temps moyen d'execution par run (with skill).</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Tokens ${tipHTML('tokens')}</div>
+      <div class="kpi-value">${U.tok(avgTok)} ${prevIter?U.trendHTML(last.configs.with_skill.tokens.mean,prevIter.configs.with_skill.tokens.mean,false):''}</div>
+      <div class="kpi-sub">Tokens moyens. Moins = plus rapide et moins cher.</div></div>
+    <div class="kpi-card"><div class="kpi-label">Cost / Run</div>
+      <div class="kpi-value">${U.usd(avgCost)}</div>
+      <div class="kpi-sub">Cout estime moyen par run (with skill).</div></div>
+  </div>`;
+
+  /* Charts */
+  html+=`<div class="charts-row"><div class="chart-wrap">
+    <div class="chart-header"><div class="chart-title">Pass Rate Evolution</div>
+      <div class="chart-explain">Chaque point = la moyenne des runs d'une iteration. Bleue = avec skill, jaune = sans.</div>
+      <div class="chart-legend"><span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span> With skill ${tipHTML('config')}</span><span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span> Without skill</span></div>
+    </div><div id="chart-pass-rate"></div>
+  </div><div class="chart-wrap">
+    <div class="chart-header"><div class="chart-title">Last Iteration Comparison</div>
+      <div class="chart-explain">Comparaison directe a l'iteration ${last.iteration}. Bleu = avec skill, jaune = sans.</div>
+      <div class="chart-legend"><span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span> With skill</span><span class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span> Without skill</span></div>
+    </div><div id="chart-last-compare"></div>
+  </div></div>`;
+
+  html+=`<div class="chart-wrap"><div class="chart-header"><div class="chart-title">Test Results Matrix (with skill)</div>
+    <div class="chart-explain">Chaque cellule = un test a une iteration. Vert = reussi, rouge = echoue.</div></div>
+    <div id="heatmap-overview" class="heatmap-container"></div></div>`;
+
+  el.innerHTML=html;
+  initPrioDrag();
+
+  const xLabels=d.iterations.map(it=>'Iter '+it.iteration);
+  CH.line($('#chart-pass-rate'),{datasets:[
+    {label:'With skill',color:'var(--blue)',values:d.iterations.map(it=>it.configs.with_skill.pass_rate.mean)},
+    {label:'Without skill',color:'var(--yellow)',values:d.iterations.map(it=>it.configs.without_skill.pass_rate.mean)}
+  ],xLabels,yFmt:v=>U.pct(v)});
+  const wo=last.configs.without_skill;
+  CH.bar($('#chart-last-compare'),{groups:[
+    {label:'Pass Rate',bars:[{label:'With skill',value:ws.pass_rate.mean,color:'var(--blue)'},{label:'Without skill',value:wo.pass_rate.mean,color:'var(--yellow)'}]},
+    {label:'Time (s)',bars:[{label:'With skill',value:ws.time_seconds.mean,color:'var(--blue)'},{label:'Without skill',value:wo.time_seconds.mean,color:'var(--yellow)'}]},
+    {label:'Tokens',bars:[{label:'With skill',value:ws.tokens.mean,color:'var(--blue)'},{label:'Without skill',value:wo.tokens.mean,color:'var(--yellow)'}]}
+  ],yFmt:v=>v>=100?U.tok(v):v>=1?v.toFixed(1):U.pct(v)});
+  renderHeatmap(d);
+}
+
+function pickIteration(n){
+  D.chosen_iteration=D.chosen_iteration===n?null:n;
+  onDecision();
+  S.rendered.delete('overview');switchTab('overview');
+}
+function movePrio(key,dir){
+  const idx=D.priorities.indexOf(key);if(idx<0)return;
+  const ni=idx+dir;if(ni<0||ni>=D.priorities.length)return;
+  [D.priorities[idx],D.priorities[ni]]=[D.priorities[ni],D.priorities[idx]];
+  onDecision();S.rendered.delete('overview');switchTab('overview');
+}
+function initPrioDrag(){
+  const list=$('#prio-list');if(!list)return;
+  let dragItem=null;
+  list.querySelectorAll('.prio-item').forEach(item=>{
+    item.addEventListener('dragstart',e=>{dragItem=item;e.dataTransfer.effectAllowed='move';item.style.opacity='.5'});
+    item.addEventListener('dragend',()=>{dragItem.style.opacity='';list.querySelectorAll('.prio-item').forEach(i=>i.classList.remove('drag-over'))});
+    item.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';item.classList.add('drag-over')});
+    item.addEventListener('dragleave',()=>item.classList.remove('drag-over'));
+    item.addEventListener('drop',e=>{
+      e.preventDefault();item.classList.remove('drag-over');
+      if(!dragItem||dragItem===item)return;
+      const from=D.priorities.indexOf(dragItem.dataset.prio);
+      const to=D.priorities.indexOf(item.dataset.prio);
+      D.priorities.splice(from,1);D.priorities.splice(to,0,dragItem.dataset.prio);
+      onDecision();S.rendered.delete('overview');switchTab('overview');
+    });
+  });
+}
+
+function renderHeatmap(d){
+  const container=$('#heatmap-overview');if(!container||!d.evals?.length)return;
+  const iters=d.iterations.map(it=>it.iteration);
+  let html='<table class="data-table" style="table-layout:fixed"><thead><tr><th style="width:200px">Eval</th>';
+  iters.forEach(it=>{html+=`<th style="text-align:center;width:60px">Iter ${it}</th>`});
+  html+='</tr></thead><tbody>';
+  d.evals.forEach(ev=>{
+    const anno=D.eval_annotations[ev.eval_id];
+    const mark=anno?anno.verdict==='approve'?'<span style="color:var(--green);font-size:.7rem"> ✓</span>':anno.verdict==='reject'?'<span style="color:var(--red);font-size:.7rem"> ✗</span>':'':'';
+    html+=`<tr><td style="font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${U.esc(ev.eval_name)}">${U.esc(ev.eval_name)}${mark}</td>`;
+    iters.forEach(it=>{
+      const runs=ev.runs.filter(r=>r.iteration===it&&r.configuration==='with_skill');
+      if(!runs.length){html+='<td style="text-align:center"><div class="heatmap-cell" style="background:var(--border);margin:auto;color:var(--text-muted)">—</div></td>';return}
+      const avg=U.mean(runs.map(r=>r.pass_rate));const col=U.heatColor(avg);
+      const rejected=anno?.verdict==='reject';
+      html+=`<td style="text-align:center"><div class="heatmap-cell" style="background:${col};margin:auto;${rejected?'outline:2px solid var(--red);outline-offset:1px':''}" title="${ev.eval_name} — Iter ${it}: ${U.pct(avg)}">${U.pct(avg)}</div></td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  html+=`<div class="hm-legend"><span class="hm-legend-text">0%</span><div class="hm-gradient"></div><span class="hm-legend-text">100%</span></div>`;
+  container.innerHTML=html;
+}
+
+/* ═══ RENDER: ITERATIONS ═══ */
+function renderIterations(){
+  const d=S.data,el=$('#tab-iterations');
+  const bestIdx=d.iterations.reduce((bi,it,i,arr)=>it.configs.with_skill.pass_rate.mean>arr[bi].configs.with_skill.pass_rate.mean?i:bi,0);
+  let html=`<div class="section-block"><div class="section-title">Comparaison des iterations</div>
+    <div class="section-subtitle">Chaque colonne = une iteration. Les metriques montrent si les changements ont ameliore ou degrade les performances.</div>
+    <div class="scroll-table"><table class="data-table"><thead><tr><th>Metrique</th>`;
+  d.iterations.forEach((it,i)=>{
+    const isChosen=D.chosen_iteration===it.iteration;
+    html+=`<th class="${i===bestIdx?'best-col':''} ${isChosen?'chosen-col':''}" style="text-align:center${!isChosen&&D.chosen_iteration!=null?';opacity:.6':''}">
+      Iter ${it.iteration}${i===bestIdx?' <span class="badge badge-best">★ Best</span>':''}${isChosen?' <span class="badge" style="background:var(--accent);color:#fff;font-size:.55rem">✓ Choisi</span>':''}
+    </th>`;
+  });
+  html+='</tr></thead><tbody>';
+  const rows=[
+    {label:`Pass Rate ${tipHTML('pass_rate')}`,key:'pass_rate',fmt:U.pct,higher:true,cfg:'with_skill'},
+    {label:`Pass Rate (baseline)`,key:'pass_rate',fmt:U.pct,higher:true,cfg:'without_skill'},
+    {label:`Time (s)`,key:'time_seconds',fmt:U.sec,higher:false,cfg:'with_skill'},
+    {label:`Tokens ${tipHTML('tokens')}`,key:'tokens',fmt:U.tok,higher:false,cfg:'with_skill'},
+    {label:`Cost ($)`,key:'cost_usd',fmt:U.usd,higher:false,cfg:'with_skill'}
+  ];
+  rows.forEach(row=>{
+    html+=`<tr><td>${row.label}</td>`;
+    d.iterations.forEach((it,i)=>{
+      const m=it.configs[row.cfg][row.key];const prev=i>0?d.iterations[i-1].configs[row.cfg][row.key].mean:null;
+      const trend=prev!=null?U.trendHTML(m.mean,prev,row.higher):'';
+      const isChosen=D.chosen_iteration===it.iteration;
+      html+=`<td class="${i===bestIdx?'best-col':''} ${isChosen?'chosen-col':''}" style="text-align:center${!isChosen&&D.chosen_iteration!=null?';opacity:.6':''}">
+        <div>${row.fmt(m.mean)} <span style="color:var(--text-muted);font-size:.72rem">±${row.key==='pass_rate'?U.pct(m.stddev):row.key==='tokens'?U.tok(m.stddev):row.key==='cost_usd'?U.usd(m.stddev):U.sec(m.stddev)}</span> ${tipHTML('stddev')} ${trend}</div>
+        <div style="margin-top:4px">${CH.sparkline(m.values,m.mean)} ${i===0&&row.key==='pass_rate'?tipHTML('sparkline'):''}</div>
+      </td>`;
+    });html+='</tr>';
+  });
+  if(d.trigger_eval){['accuracy','f1'].forEach(k=>{
+    html+=`<tr><td>${k==='accuracy'?'Trigger Accuracy':'Trigger F1 '+tipHTML('f1')}</td>`;
+    d.iterations.forEach((it,i)=>{const te=d.trigger_eval.iterations.find(t=>t.iteration===it.iteration);const isChosen=D.chosen_iteration===it.iteration;
+      if(!te){html+=`<td class="${i===bestIdx?'best-col':''}" style="text-align:center">—</td>`;return}
+      const prev=i>0?d.trigger_eval.iterations.find(t=>t.iteration===d.iterations[i-1].iteration):null;
+      html+=`<td class="${i===bestIdx?'best-col':''} ${isChosen?'chosen-col':''}" style="text-align:center${!isChosen&&D.chosen_iteration!=null?';opacity:.6':''}">${(te[k]*100).toFixed(1)}% ${prev?U.trendHTML(te[k],prev[k]):''}</td>`;
+    });html+='</tr>';
+  })}
+  html+=`<tr class="row-avg"><td>Delta ${tipHTML('delta')}</td>`;
+  d.iterations.forEach((it,i)=>{
+    if(!it.delta){html+=`<td style="text-align:center">—</td>`;return}
+    const dp=it.delta.pass_rate||'';const isPos=dp.startsWith('+')&&dp!=='+0%';const isNeg=dp.startsWith('-');
+    html+=`<td class="${i===bestIdx?'best-col':''}" style="text-align:center"><span class="${isPos?'cell-pass':isNeg?'cell-fail':''}">${dp}</span></td>`;
+  });
+  html+='</tr>';
+  /* Decision row */
+  html+=`<tr style="border-top:2px solid var(--accent)"><td style="font-weight:600;color:var(--accent)">Ma decision</td>`;
+  d.iterations.forEach(it=>{
+    const sel=D.chosen_iteration===it.iteration;
+    html+=`<td style="text-align:center"><button class="btn ${sel?'btn-primary':'btn-outline'}" style="font-size:.7rem;padding:4px 10px" onclick="pickIteration(${it.iteration})">${sel?'★ Garder':'Choisir'}</button></td>`;
+  });
+  html+='</tr></tbody></table></div></div>';
+
+  html+=`<div class="section-block"><div class="collapsible-header" onclick="this.parentElement.classList.toggle('collapsible-open')">
+    <span class="collapsible-arrow">▸</span><span class="section-title" style="margin-bottom:0">Description Diff</span></div>
+    <div class="section-subtitle" style="margin-top:4px">Voir ce qui a change dans la description entre chaque iteration.</div>
+    <div class="collapsible-content"><div style="padding:8px 0">`;
+  d.iterations.forEach((it,i)=>{const prev=i>0?d.iterations[i-1].description:'';
+    html+=`<div style="margin-bottom:16px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+      <div style="font-family:var(--ft);font-size:.78rem;font-weight:600;margin-bottom:6px">Iteration ${it.iteration}</div>
+      <div style="font-size:.82rem;line-height:1.6">${i===0?U.esc(it.description):wordDiff(prev,it.description)}</div></div>`;
+  });
+  html+='</div></div></div>';
+  el.innerHTML=html;
+}
+
+/* ═══ RENDER: EVALS DETAIL ═══ */
+function renderEvals(){
+  const d=S.data,el=$('#tab-evals');
+  const categories=[...new Set(d.evals.map(e=>e.category))];
+  const iters=[...new Set(d.iterations.map(it=>it.iteration))];
+  let html=`<div class="section-subtitle">Chaque eval est un scenario de test. Annote chaque eval pour structurer tes decisions.</div>
+    <div class="filter-bar">
+      <label>Categorie :</label><select id="filter-cat" onchange="filterEvals()"><option value="">Toutes</option>${categories.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+      <label>Afficher :</label><select id="filter-status" onchange="filterEvals()"><option value="">Tous les tests</option><option value="fail">Seulement les echecs</option></select>
+      <label>Iteration :</label><select id="filter-iter" onchange="filterEvals()"><option value="">Toutes</option>${iters.map(i=>`<option value="${i}">Iter ${i}</option>`).join('')}</select>
+      <span class="filter-count" id="eval-count"></span>
+    </div><div id="eval-cards">`;
+  d.evals.forEach(ev=>{
+    const wsRuns=ev.runs.filter(r=>r.configuration==='with_skill');
+    const avgRate=wsRuns.length?U.mean(wsRuns.map(r=>r.pass_rate)):0;const passW=Math.round(avgRate*100);
+    const anno=D.eval_annotations[ev.eval_id];
+    const vClass=anno?anno.verdict==='approve'?'verdict-approve':anno.verdict==='reject'?'verdict-reject':'verdict-comment':'';
+    html+=`<div class="eval-card ${vClass}" data-category="${ev.category}" data-avg="${avgRate}" data-eid="${ev.eval_id}" id="ecard-${ev.eval_id}">
+      <div class="eval-card-header" onclick="toggleEvalCard(this.parentElement)">
+        <span class="eval-toggle">▸</span>
+        <span class="eval-name">${U.esc(ev.eval_name)}</span>
+        ${anno?.verdict==='approve'?'<span class="eval-validated">✓ Valide</span>':''}
+        <span class="badge badge-${ev.category==='edge_cases'?'yellow':ev.category==='performance'?'red':'blue'}">${ev.category}</span>
+        <div class="eval-progress"><div class="eval-progress-pass" style="width:${passW}%"></div><div class="eval-progress-fail" style="width:${100-passW}%"></div></div>
+        <span class="eval-rate" style="color:${avgRate>=.8?'var(--green)':avgRate>=.5?'var(--yellow)':'var(--red)'}">${U.pct(avgRate)}</span>
+        <div class="anno-btns" onclick="event.stopPropagation()">
+          <button class="anno-btn${anno?.verdict==='approve'?' active active-approve':''}" onclick="annotateEval(${ev.eval_id},'approve')" title="Ce test me plait">👍</button>
+          <button class="anno-btn${anno?.verdict==='reject'?' active active-reject':''}" onclick="annotateEval(${ev.eval_id},'reject')" title="A ameliorer">👎</button>
+          <button class="anno-btn${anno?.comment?' active active-comment':''}" onclick="toggleComment(${ev.eval_id})" title="Commenter">💬</button>
+        </div>
+      </div>
+      <div class="eval-card-body">
+        <div id="eval-comment-${ev.eval_id}" style="${anno?.verdict==='reject'||anno?.comment?'':'display:none'}">
+          <textarea class="anno-comment" placeholder="Qu'est-ce qui ne va pas ? (optionnel)" oninput="saveComment(${ev.eval_id},this.value)">${U.esc(anno?.comment||'')}</textarea>
+        </div>
+        ${renderEvalBody(ev,d)}
+      </div>
+    </div>`;
+  });
+  html+='</div>';el.innerHTML=html;filterEvals();
+}
+function toggleEvalCard(card){card.classList.toggle('open')}
+function annotateEval(eid,verdict){
+  const prev=D.eval_annotations[eid];
+  if(prev?.verdict===verdict){delete D.eval_annotations[eid]}
+  else{D.eval_annotations[eid]={...(prev||{}),verdict}}
+  onDecision();S.rendered.delete('evals');switchTab('evals');
+  if(verdict==='approve'){const card=$(`#ecard-${eid}`);if(card)card.classList.remove('open')}
+  if(verdict==='reject'){const card=$(`#ecard-${eid}`);if(card){card.classList.add('open');const cm=$(`#eval-comment-${eid}`);if(cm)cm.style.display=''}}
+}
+function toggleComment(eid){
+  const cm=$(`#eval-comment-${eid}`);if(!cm)return;
+  cm.style.display=cm.style.display==='none'?'':'none';
+  if(cm.style.display!=='none')cm.querySelector('textarea')?.focus();
+}
+function saveComment(eid,text){
+  if(!D.eval_annotations[eid])D.eval_annotations[eid]={};
+  D.eval_annotations[eid].comment=text||null;
+  saveDecisions();
+}
+
+function renderEvalBody(ev,d){
+  let html='';
+  html+=`<div style="margin-top:12px"><div style="font-family:var(--ft);font-size:.78rem;font-weight:600;margin-bottom:6px">Runs</div>
+  <div class="scroll-table" style="max-height:250px"><table class="data-table"><thead><tr>
+    <th>Config ${tipHTML('config')}</th><th>Run #</th><th>Pass Rate ${tipHTML('pass_rate')}</th><th>Passed</th><th>Total</th><th>Time</th><th>Tokens ${tipHTML('tokens')}</th><th>Errors</th>
+  </tr></thead><tbody>`;
+  const iters=[...new Set(ev.runs.map(r=>r.iteration))].sort((a,b)=>a-b);
+  iters.forEach(it=>{
+    ev.runs.filter(r=>r.iteration===it).sort((a,b)=>a.configuration.localeCompare(b.configuration)||a.run_number-b.run_number).forEach(r=>{
+      const isWS=r.configuration==='with_skill';
+      html+=`<tr data-iter="${it}"><td><span class="badge ${isWS?'badge-blue':'badge-yellow'}">${isWS?'with':'without'}</span> <span style="font-size:.7rem;color:var(--text-muted)">iter ${it}</span></td>
+        <td>#${r.run_number}</td><td class="${r.pass_rate>=.8?'cell-pass':r.pass_rate<.5?'cell-fail':''}">${U.pct(r.pass_rate)}</td>
+        <td>${r.passed}</td><td>${r.total}</td><td>${U.sec(r.time_seconds)}</td><td>${U.tok(r.tokens)}</td><td class="${r.errors?'cell-fail':''}">${r.errors}</td></tr>`;
+    });
+  });
+  html+='</tbody></table></div></div>';
+
+  if(ev.runs.length&&ev.runs[0].expectations){
+    html+=`<div style="margin-top:16px"><div style="font-family:var(--ft);font-size:.78rem;font-weight:600;margin-bottom:4px">Assertions</div>
+      <div class="section-subtitle" style="margin-bottom:8px">✓ = critere rempli, ✗ = echoue. 📌 = marquer comme critique.</div>
+      <div class="scroll-table" style="max-height:300px;overflow-x:auto"><table class="data-table"><thead><tr><th style="min-width:200px">Assertion</th>`;
+    const lastIterRuns=ev.runs.filter(r=>r.iteration===iters[iters.length-1]).sort((a,b)=>a.configuration.localeCompare(b.configuration)||a.run_number-b.run_number);
+    lastIterRuns.forEach(r=>{const isWS=r.configuration==='with_skill';html+=`<th style="text-align:center;font-size:.6rem">${isWS?'W':'WO'} #${r.run_number}</th>`});
+    html+='<th style="width:30px"></th></tr></thead><tbody>';
+    const exps=lastIterRuns[0]?lastIterRuns[0].expectations:[];
+    exps.forEach((exp,ei)=>{
+      const pinKey=ev.eval_id+':'+exp.text;
+      const isPinned=D.critical_assertions.has(pinKey);
+      html+=`<tr${isPinned?' style="background:var(--yellow-bg)"':''}>
+        <td style="font-size:.78rem">${U.esc(exp.text)}</td>`;
+      lastIterRuns.forEach(r=>{const e=r.expectations[ei];
+        if(!e){html+='<td style="text-align:center">—</td>';return}
+        html+=`<td style="text-align:center" class="${e.passed?'cell-pass':'cell-fail'}"><span class="cell-icon help-tip" data-tip="${U.esc(e.evidence||'')}" tabindex="0">${e.passed?'✓':'✗'}</span></td>`;
+      });
+      html+=`<td><button class="pin-btn${isPinned?' pinned':''}" onclick="togglePin('${U.esc(pinKey)}')" title="Marquer comme critique">📌</button></td></tr>`;
+    });
+    html+='</tbody></table></div></div>';
+  }
+  return html;
+}
+function togglePin(key){
+  if(D.critical_assertions.has(key))D.critical_assertions.delete(key);else D.critical_assertions.add(key);
+  onDecision();S.rendered.delete('evals');switchTab('evals');
+}
+
+function filterEvals(){
+  const cat=$('#filter-cat')?.value||'';const status=$('#filter-status')?.value||'';const iter=$('#filter-iter')?.value||'';
+  const cards=$$('#eval-cards .eval-card');let shown=0,pass=0,fail=0;
+  cards.forEach(card=>{let show=true;
+    if(cat&&card.dataset.category!==cat)show=false;
+    if(status==='fail'&&parseFloat(card.dataset.avg)>=1)show=false;
+    card.style.display=show?'':'none';
+    if(show){shown++;if(parseFloat(card.dataset.avg)>=.8)pass++;else fail++}
+    if(iter){card.querySelectorAll('tr[data-iter]').forEach(tr=>{tr.style.display=(!iter||tr.dataset.iter===iter)?'':'none'})}
+  });
+  const countEl=$('#eval-count');if(countEl)countEl.textContent=`${shown} tests (${pass} reussis, ${fail} en difficulte)`;
+}
+
+/* ═══ RENDER: TRIGGER ANALYSIS ═══ */
+function renderTrigger(){
+  const d=S.data,el=$('#tab-trigger');
+  if(!d.trigger_eval?.iterations?.length){el.innerHTML='<div class="section-subtitle">Aucune donnee de trigger disponible.</div>';return}
+  const te=d.trigger_eval,last=te.iterations[te.iterations.length-1],first=te.iterations[0];
+  let html=`<div class="section-subtitle">Est-ce que ton skill se declenche au bon moment ? Annote chaque erreur pour guider la prochaine iteration.</div>`;
+  const metrics=[
+    {label:'Accuracy',key:'accuracy',tip:'Pourcentage total de classifications correctes.',sub:v=>`${U.pct(v)} → ${Math.round(v*te.total_queries)}/${te.total_queries} correctes.`},
+    {label:'Precision',key:'precision',tip:TIPS.precision,sub:v=>`${U.pct(v)} → ${last.true_positives}/${last.true_positives+last.false_positives} activations justifiees.`},
+    {label:'Recall',key:'recall',tip:TIPS.recall,sub:v=>`${U.pct(v)} → ${last.true_positives}/${te.should_trigger} cas detectes.`},
+    {label:'F1 Score',key:'f1',tip:TIPS.f1,sub:v=>`${v.toFixed(3)} — ${v>=.95?'Excellent':v>=.85?'Bon':v>=.7?'Acceptable':'A ameliorer'}`}
+  ];
+  html+='<div class="kpi-grid">';
+  metrics.forEach(m=>{const val=last[m.key];const prev=te.iterations.length>1?first[m.key]:null;
+    html+=`<div class="kpi-card"><div class="kpi-label">${m.label} ${tipHTML(m.key==='accuracy'?m.tip:m.key)}</div>
+      <div class="kpi-value">${m.key==='f1'?val.toFixed(3):U.pct(val)} ${prev!=null?U.trendHTML(val,prev):''}</div>
+      <div class="kpi-sub">${m.sub(val)}</div></div>`;
+  });
+  html+='</div>';
+  html+=`<div class="charts-row"><div class="chart-wrap"><div class="chart-header"><div class="chart-title">Confusion Matrix ${tipHTML('confusion')}</div>
+    <div class="chart-explain">4 cas possibles. Vert = correct, rouge = erreur.</div></div>
+    <div class="cm-wrap"><div class="cm-axis-label">Le skill s'est-il active ?</div>
+      <div class="cm-grid"><div class="cm-corner"></div><div class="cm-col-label">Non</div><div class="cm-col-label">Oui</div>
+        <div class="cm-row-label">Non (ne devait pas)</div>
+        <div class="cm-cell cm-correct"><div class="cm-cell-value">${last.confusion[0][0]}</div><div class="cm-cell-label">Vrai negatif ✓</div></div>
+        <div class="cm-cell cm-error"><div class="cm-cell-value">${last.confusion[0][1]}</div><div class="cm-cell-label">Faux positif ✗</div></div>
+        <div class="cm-row-label">Oui (devait s'activer)</div>
+        <div class="cm-cell cm-error"><div class="cm-cell-value">${last.confusion[1][0]}</div><div class="cm-cell-label">Faux negatif ✗</div></div>
+        <div class="cm-cell cm-correct"><div class="cm-cell-value">${last.confusion[1][1]}</div><div class="cm-cell-label">Vrai positif ✓</div></div>
+      </div><div class="cm-axis-label">Aurait-il du s'activer ?</div></div>
+  </div><div class="chart-wrap"><div class="chart-header"><div class="chart-title">Evolution des metriques</div>
+    <div class="chart-explain">Comment les metriques evoluent a chaque iteration.</div>
+    <div class="chart-legend"><span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span> Accuracy</span><span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span> Precision</span><span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span> Recall</span><span class="legend-item"><span class="legend-dot" style="background:var(--text)"></span> F1</span></div>
+  </div><div id="chart-trigger-evo"></div></div></div>`;
+
+  if(last.misclassified?.length){
+    html+=`<div class="chart-wrap"><div class="chart-header"><div class="chart-title">Requetes mal classees</div>
+      <div class="chart-explain">Annote chaque erreur : a corriger, acceptable, ou a retirer du test.</div></div>
+      <table class="data-table"><thead><tr><th>Requete</th><th>Attendu</th><th>Obtenu</th><th>Type</th><th>Ma decision</th></tr></thead><tbody>`;
+    last.misclassified.forEach((mc,mi)=>{
+      const isFP=!mc.expected&&mc.got;const td=D.trigger_decisions[mc.query]||{decision:'fix'};
+      html+=`<tr style="${td.decision==='acceptable'||td.decision==='remove'?'opacity:.5':''}">
+        <td style="font-size:.82rem">${U.esc(mc.query)}</td><td>${mc.expected?'Oui':'Non'}</td><td>${mc.got?'Oui':'Non'}</td>
+        <td><span class="badge ${isFP?'badge-red':'badge-yellow'}">${isFP?'FP':'FN'}</span></td>
+        <td><select class="trig-select" onchange="setTrigDecision('${U.esc(mc.query)}',this.value)">
+          <option value="fix"${td.decision==='fix'?' selected':''}>🔧 A corriger</option>
+          <option value="acceptable"${td.decision==='acceptable'?' selected':''}>🤷 Acceptable</option>
+          <option value="remove"${td.decision==='remove'?' selected':''}>🗑️ Retirer</option>
+        </select></td></tr>`;
+    });
+    html+='</tbody></table>';
+    html+=`<div class="trig-count" id="trig-count"></div></div>`;
+  }
+
+  const queryMap={};
+  te.iterations.forEach(it=>{(it.misclassified||[]).forEach(mc=>{if(!queryMap[mc.query])queryMap[mc.query]={count:0,iters:[]};queryMap[mc.query].count++;queryMap[mc.query].iters.push(it.iteration)})});
+  const unstable=Object.entries(queryMap).filter(([,v])=>v.count>1).sort((a,b)=>b[1].count-a[1].count);
+  if(unstable.length){
+    html+=`<div class="chart-wrap"><div class="chart-header"><div class="chart-title">Requetes instables</div>
+      <div class="chart-explain">Resultats differents selon les iterations.</div></div>
+      <table class="data-table"><thead><tr><th>Requete</th><th>Erreurs</th><th>Iterations</th><th>Fiabilite</th><th>Decision</th></tr></thead><tbody>`;
+    unstable.forEach(([q,v])=>{const rel=((te.iterations.length-v.count)/te.iterations.length*100).toFixed(0);
+      const td=D.trigger_decisions[q]||{decision:'fix'};
+      html+=`<tr><td style="font-size:.82rem">${U.esc(q)}</td><td>${v.count}/${te.iterations.length}</td><td>${v.iters.map(i=>'Iter '+i).join(', ')}</td>
+        <td><span style="color:${rel>=75?'var(--green)':rel>=50?'var(--yellow)':'var(--red)'};font-weight:600">${rel}%</span></td>
+        <td><select class="trig-select" onchange="setTrigDecision('${U.esc(q)}',this.value)">
+          <option value="fix"${td.decision==='fix'?' selected':''}>🔧 A corriger</option>
+          <option value="acceptable"${td.decision==='acceptable'?' selected':''}>🤷 Acceptable</option>
+          <option value="remove"${td.decision==='remove'?' selected':''}>🗑️ Retirer</option>
+          <option value="must_stable"${td.decision==='must_stable'?' selected':''}>📌 Doit etre stable</option>
+        </select></td></tr>`;
+    });
+    html+='</tbody></table></div>';
+  }
+
+  el.innerHTML=html;
+  updateTrigCount();
+  const xLabels=te.iterations.map(it=>'Iter '+it.iteration);
+  CH.line($('#chart-trigger-evo'),{datasets:[
+    {label:'Accuracy',color:'var(--blue)',values:te.iterations.map(t=>t.accuracy)},
+    {label:'Precision',color:'var(--green)',values:te.iterations.map(t=>t.precision)},
+    {label:'Recall',color:'var(--accent)',values:te.iterations.map(t=>t.recall)},
+    {label:'F1',color:'var(--text)',values:te.iterations.map(t=>t.f1)}
+  ],xLabels,yFmt:v=>U.pct(v)});
+}
+function setTrigDecision(query,decision){
+  D.trigger_decisions[query]={decision};saveDecisions();updateTrigCount();
+  S.rendered.delete('trigger');switchTab('trigger');
+}
+function updateTrigCount(){
+  const el=$('#trig-count');if(!el)return;
+  const vals=Object.values(D.trigger_decisions);
+  const fix=vals.filter(v=>v.decision==='fix').length;
+  const acc=vals.filter(v=>v.decision==='acceptable').length;
+  const rem=vals.filter(v=>v.decision==='remove').length;
+  el.textContent=`${fix} a corriger, ${acc} acceptables, ${rem} a retirer`;
+}
+
+/* ═══ RENDER: RAW DATA ═══ */
+function renderRaw(){
+  const d=S.data,el=$('#tab-raw');
+  const allRows=[];
+  d.evals.forEach(ev=>{ev.runs.forEach(r=>{allRows.push({iteration:r.iteration,eval:ev.eval_name,eval_id:ev.eval_id,config:r.configuration,run:r.run_number,
+    pass_rate:r.pass_rate,passed:r.passed,total:r.total,time:r.time_seconds,tokens:r.tokens,cost:r.cost_usd,errors:r.errors})})});
+  S.raw.allRows=allRows;
+  let html=`<div class="section-subtitle">Toutes les donnees brutes. Trier, filtrer et exporter.</div>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <div class="search-wrap" style="flex:1;min-width:200px"><input id="raw-search" type="text" placeholder="Filtrer par nom de test, configuration, iteration..." oninput="updateRawTable()"></div>
+      <button class="btn btn-outline" onclick="copyRawCSV(this)">Copy CSV</button>
+      <button class="btn btn-outline" onclick="copyRawJSON(this)">Copy JSON</button>
+      <span class="page-info" id="raw-count"></span>
+    </div><div class="scroll-table" style="max-height:none"><table class="data-table" id="raw-table"><thead><tr>`;
+  const cols=[
+    {key:'iteration',label:'Iter',fmt:v=>v},{key:'eval',label:'Eval',fmt:v=>v},
+    {key:'config',label:'Config',fmt:v=>v==='with_skill'?'With':'Without'},{key:'run',label:'Run #',fmt:v=>'#'+v},
+    {key:'pass_rate',label:'Pass Rate',fmt:U.pct},{key:'passed',label:'Passed',fmt:v=>v},{key:'total',label:'Total',fmt:v=>v},
+    {key:'time',label:'Time (s)',fmt:U.sec},{key:'tokens',label:'Tokens',fmt:U.tok},{key:'cost',label:'Cost ($)',fmt:U.usd},{key:'errors',label:'Errors',fmt:v=>v}
+  ];
+  S.raw.cols=cols;
+  cols.forEach(c=>{html+=`<th class="sortable" onclick="sortRaw('${c.key}')">${c.label} <span class="sort-icon" id="sort-${c.key}"></span></th>`});
+  html+=`<th>Verdict</th></tr></thead><tbody id="raw-tbody"></tbody></table></div>
+    <div class="pagination" id="raw-pagination"></div>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+      <label style="font-family:var(--ft);font-size:.72rem;color:var(--text-muted)">Lignes par page :</label>
+      <select style="font-size:.78rem;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg)" onchange="S.raw.perPage=parseInt(this.value);S.raw.page=1;updateRawTable()">
+        <option value="25">25</option><option value="50">50</option><option value="9999">Toutes</option></select></div>`;
+  el.innerHTML=html;updateRawTable();
+}
+function getFilteredRows(){
+  const q=(($('#raw-search')||{}).value||'').toLowerCase();let rows=S.raw.allRows;
+  if(q)rows=rows.filter(r=>(r.eval+' '+r.config+' iter '+r.iteration).toLowerCase().includes(q));
+  if(S.raw.sort){const dir=S.raw.dir==='asc'?1:-1;rows=[...rows].sort((a,b)=>{const va=a[S.raw.sort],vb=b[S.raw.sort];return typeof va==='string'?va.localeCompare(vb)*dir:(va-vb)*dir})}
+  return rows;
+}
+function updateRawTable(){
+  const rows=getFilteredRows();const{page,perPage,cols}=S.raw;const total=rows.length;
+  const maxPage=Math.max(1,Math.ceil(total/perPage));if(S.raw.page>maxPage)S.raw.page=maxPage;
+  const start=(S.raw.page-1)*perPage;const pageRows=rows.slice(start,start+perPage);
+  const tbody=$('#raw-tbody');if(!tbody)return;
+  tbody.innerHTML=pageRows.map(r=>{
+    const anno=D.eval_annotations[r.eval_id];
+    const vBadge=anno?anno.verdict==='approve'?'<span class="badge badge-green">👍</span>':anno.verdict==='reject'?'<span class="badge badge-red">👎</span>':'<span class="badge badge-blue">💬</span>':'—';
+    return'<tr>'+cols.map(c=>{
+      let cls='';if(c.key==='pass_rate')cls=r.pass_rate>=.8?'cell-pass':r.pass_rate<.5?'cell-fail':'';
+      if(c.key==='errors'&&r.errors)cls='cell-fail';
+      if(c.key==='config')return`<td><span class="badge ${r.config==='with_skill'?'badge-blue':'badge-yellow'}">${c.fmt(r[c.key])}</span></td>`;
+      return`<td class="${cls}">${c.fmt(r[c.key])}</td>`;
+    }).join('')+`<td>${vBadge}</td></tr>`;
+  }).join('');
+  $('#raw-count').textContent=`${pageRows.length} / ${total} lignes`;
+  const pag=$('#raw-pagination');if(maxPage<=1){pag.innerHTML='';return}
+  let ph=`<button ${S.raw.page<=1?'disabled':''} onclick="S.raw.page--;updateRawTable()">← Prec</button>`;
+  for(let i=1;i<=maxPage;i++){
+    if(maxPage>7&&i>2&&i<maxPage-1&&Math.abs(i-S.raw.page)>1){if(i===3||i===maxPage-2)ph+='<span style="color:var(--text-muted)">…</span>';continue}
+    ph+=`<button class="${i===S.raw.page?'active':''}" onclick="S.raw.page=${i};updateRawTable()">${i}</button>`;
+  }
+  ph+=`<button ${S.raw.page>=maxPage?'disabled':''} onclick="S.raw.page++;updateRawTable()">Suiv →</button>`;pag.innerHTML=ph;
+}
+function sortRaw(key){
+  if(S.raw.sort===key)S.raw.dir=S.raw.dir==='asc'?'desc':'asc';else{S.raw.sort=key;S.raw.dir='asc'}
+  $$('[id^="sort-"]').forEach(el=>el.textContent='');const icon=$('#sort-'+key);if(icon)icon.textContent=S.raw.dir==='asc'?'↑':'↓';updateRawTable();
+}
+
+/* ═══ EXPORTS ═══ */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(S.data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(S.data.metadata.skill_name||'benchmark')+'_report.json';a.click();URL.revokeObjectURL(a.href);
+}
+function exportCSV(){
+  if(!S.raw.allRows)renderRaw();const cols=S.raw.cols||[];
+  const csv=cols.map(c=>c.label).join(',')+'\n'+(S.raw.allRows||[]).map(r=>cols.map(c=>{const v=r[c.key];return typeof v==='string'?`"${v.replace(/"/g,'""')}"`:v}).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(S.data.metadata.skill_name||'benchmark')+'_data.csv';a.click();URL.revokeObjectURL(a.href);
+}
+async function copyRawCSV(btn){
+  const cols=S.raw.cols||[];const rows=getFilteredRows();
+  const csv=cols.map(c=>c.label).join(',')+'\n'+rows.map(r=>cols.map(c=>{const v=r[c.key];return typeof v==='string'?`"${v}"`:v}).join(',')).join('\n');
+  await navigator.clipboard.writeText(csv);const o=btn.textContent;btn.textContent='✓ Copie !';setTimeout(()=>btn.textContent=o,1500);
+}
+async function copyRawJSON(btn){await navigator.clipboard.writeText(JSON.stringify(getFilteredRows(),null,2));const o=btn.textContent;btn.textContent='✓ Copie !';setTimeout(()=>btn.textContent=o,1500)}
+
+/* ═══ DECISION SIDEBAR ═══ */
+function toggleSidebar(){S.sidebarOpen=!S.sidebarOpen;$('#decision-sidebar').classList.toggle('open',S.sidebarOpen);if(S.sidebarOpen)updateSidebar()}
+function updateSidebar(){
+  const sb=$('#decision-sidebar');if(!sb||!S.data)return;
+  const d=S.data;const approveCount=Object.values(D.eval_annotations).filter(a=>a.verdict==='approve').length;
+  const rejectCount=Object.values(D.eval_annotations).filter(a=>a.verdict==='reject').length;
+  const commentCount=Object.values(D.eval_annotations).filter(a=>a.comment).length;
+  const trigFix=Object.values(D.trigger_decisions).filter(v=>v.decision==='fix').length;
+  const trigAcc=Object.values(D.trigger_decisions).filter(v=>v.decision==='acceptable').length;
+  const trigRem=Object.values(D.trigger_decisions).filter(v=>v.decision==='remove').length;
+  const totalEvals=d.evals?.length||0;const annotatedEvals=Object.keys(D.eval_annotations).length;
+
+  const checks=[];
+  checks.push({done:D.chosen_iteration!=null,text:'Iteration selectionnee'});
+  checks.push({done:true,text:'Priorites ordonnees'});
+  checks.push({done:annotatedEvals>=totalEvals,text:`Evals annotes (${annotatedEvals}/${totalEvals})`});
+  if(d.trigger_eval)checks.push({done:Object.keys(D.trigger_decisions).length>0,text:'Triggers reviewes'});
+  checks.push({done:D.general_notes.trim().length>0,text:'Notes ajoutees',optional:true});
+  const required=checks.filter(c=>!c.optional);const doneReq=required.filter(c=>c.done).length;
+  const pct=required.length?Math.round(doneReq/required.length*100):100;
+  const allDone=pct===100;
+
+  const badge=$('#sb-badge');if(badge)badge.textContent=decisionCount();
+
+  let html=`<div class="sb-header"><span class="sb-title">📋 Mes decisions</span>
+    <button class="sb-close" onclick="toggleSidebar()">✕</button></div>
+    <div class="sb-body">`;
+
+  html+=`<div class="sb-section"><div class="sb-label">Iteration choisie</div>`;
+  if(D.chosen_iteration!=null){
+    const ci=d.iterations.find(it=>it.iteration===D.chosen_iteration);
+    html+=`<div class="sb-value">★ Iteration ${D.chosen_iteration}</div>`;
+    if(ci){const cws=ci.configs.with_skill;html+=`<div class="sb-note">Pass: ${U.pct(cws.pass_rate.mean)} | Time: ${U.sec(cws.time_seconds.mean)}</div>`}
+    html+=`<button class="btn btn-outline" style="margin-top:6px;font-size:.68rem;padding:3px 8px" onclick="switchTab('overview')">Changer</button>`;
+  }else{html+=`<div class="sb-note">Pas encore choisie</div>`}
+  html+=`</div>`;
+
+  html+=`<div class="sb-section"><div class="sb-label">Priorites</div>`;
+  D.priorities.forEach((k,i)=>{const m=PRIO_META[k];html+=`<div style="font-size:.78rem">${i+1}. ${m.icon} ${m.label}</div>`});
+  html+=`</div>`;
+
+  html+=`<div class="sb-section"><div class="sb-label">Evals annotes</div>
+    <div style="font-size:.78rem">👍 ${approveCount} valides</div>
+    <div style="font-size:.78rem">👎 ${rejectCount} a ameliorer</div>
+    <div style="font-size:.78rem">💬 ${commentCount} avec commentaires</div>
+    ${annotatedEvals<totalEvals?`<div class="sb-note" style="margin-top:4px">Plus que ${totalEvals-annotatedEvals} eval(s) !</div>`:''}
+  </div>`;
+
+  html+=`<div class="sb-section"><div class="sb-label">Assertions critiques</div>
+    <div style="font-size:.78rem">📌 ${D.critical_assertions.size} marquees</div></div>`;
+
+  if(d.trigger_eval){
+    html+=`<div class="sb-section"><div class="sb-label">Triggers</div>
+      <div style="font-size:.78rem">🔧 ${trigFix} a corriger · 🤷 ${trigAcc} acceptables · 🗑️ ${trigRem} a retirer</div></div>`;
+  }
+
+  html+=`<div class="sb-section"><div class="sb-label">Notes generales</div>
+    <textarea class="sb-textarea" id="sb-notes" placeholder="Autres observations, idees, directions..." oninput="D.general_notes=this.value;saveDecisions()">${U.esc(D.general_notes)}</textarea>
+    <div class="sb-charcount">${D.general_notes.length} car.</div></div>`;
+
+  html+=`<div class="sb-section"><div class="sb-label">Completude</div>
+    <div class="completeness-bar"><div class="completeness-fill" style="width:${pct}%"></div></div>
+    <div class="completeness-text">${pct}% complete</div>
+    <div class="completeness-todo">${checks.filter(c=>!c.done&&!c.optional).map(c=>'• '+c.text).join('<br>')}</div></div>`;
+
+  html+=`<div class="sb-shortcuts">Raccourcis : <b>d</b> = sidebar · <b>y</b> = valider · <b>n</b> = rejeter</div>`;
+  html+=`</div>`;
+
+  html+=`<div class="sb-footer">
+    <button class="btn btn-primary sb-export-btn ${allDone?'ready':''}" onclick="showExportModal()">🚀 Exporter mes decisions</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:6px;font-size:.68rem;justify-content:center" onclick="if(confirm('Reinitialiser toutes les decisions ?')){resetDecisions()}">Reinitialiser</button>
+  </div>`;
+
+  sb.innerHTML=html;
+}
+
+function resetDecisions(){
+  D.chosen_iteration=null;D.priorities=['quality','speed','cost','trigger_accuracy'];
+  D.thresholds={quality:null,speed:null,cost:null,trigger_accuracy:null};
+  D.eval_annotations={};D.critical_assertions=new Set();D.trigger_decisions={};D.general_notes='';
+  try{localStorage.removeItem(lsKey())}catch(e){}
+  S.rendered.clear();switchTab(S.tab);updateSidebar();showToast('Decisions reinitialisees');
+}
+
+/* ═══ EXPORT DECISIONS ═══ */
+function buildDecisionJSON(){
+  const d=S.data;
+  return{
+    metadata:{skill_name:d.metadata.skill_name,exported_at:new Date().toISOString(),completeness:0},
+    chosen_iteration:{iteration:D.chosen_iteration,reason:null},
+    optimization_priorities:D.priorities.map((k,i)=>({rank:i+1,priority:k,label:PRIO_META[k].label,minimum_threshold:D.thresholds[k]})),
+    eval_annotations:Object.entries(D.eval_annotations).map(([eid,a])=>{
+      const ev=d.evals.find(e=>e.eval_id===+eid);
+      return{eval_id:+eid,eval_name:ev?.eval_name||'',verdict:a.verdict||'comment',comment:a.comment||null};
+    }),
+    critical_assertions:[...D.critical_assertions].map(k=>{const[eid,...rest]=k.split(':');return{eval_id:+eid,assertion:rest.join(':'),priority:'critical'}}),
+    trigger_decisions:Object.entries(D.trigger_decisions).map(([q,v])=>({query:q,decision:v.decision})),
+    general_notes:D.general_notes
+  };
+}
+function buildMarkdownSummary(){
+  const d=S.data,j=buildDecisionJSON();
+  let md=`## Mes decisions de benchmark pour ${d.metadata.skill_name}\n\n`;
+  if(D.chosen_iteration!=null){
+    const ci=d.iterations.find(it=>it.iteration===D.chosen_iteration);const cws=ci?.configs?.with_skill;
+    md+=`### Iteration retenue\nJe choisis l'**iteration ${D.chosen_iteration}**`;
+    if(cws)md+=` (pass rate: ${U.pct(cws.pass_rate.mean)}, time: ${U.sec(cws.time_seconds.mean)}, tokens: ${U.tok(cws.tokens.mean)})`;
+    md+='.\n\n';
+  }
+  md+=`### Mes priorites d'optimisation (dans l'ordre)\n`;
+  D.priorities.forEach((k,i)=>{md+=`${i+1}. **${PRIO_META[k].label}**${D.thresholds[k]!=null?' — minimum: '+D.thresholds[k]:''}\n`});
+  md+='\n';
+  const approves=j.eval_annotations.filter(a=>a.verdict==='approve');
+  const rejects=j.eval_annotations.filter(a=>a.verdict==='reject');
+  if(approves.length){md+=`### Ce qui marche bien (a garder) 👍\n`;approves.forEach(a=>{md+=`- "${a.eval_name}"${a.comment?' — '+a.comment:''}\n`});md+='\n'}
+  if(rejects.length){md+=`### Ce qui doit etre ameliore 👎\n`;rejects.forEach(a=>{md+=`- "${a.eval_name}"${a.comment?' — '+a.comment:''}\n`});md+='\n'}
+  if(j.critical_assertions.length){md+=`### Assertions critiques (non-negociables) 📌\n`;j.critical_assertions.forEach(a=>{md+=`- "${a.assertion}"\n`});md+='\n'}
+  const trigFix=j.trigger_decisions.filter(t=>t.decision==='fix');
+  if(trigFix.length){md+=`### Problemes de trigger a corriger 🔧\n`;trigFix.forEach(t=>{md+=`- "${t.query}"\n`});md+='\n'}
+  if(D.general_notes.trim()){md+=`### Notes\n${D.general_notes}\n`}
+  return md;
+}
+function showExportModal(){
+  const md=buildMarkdownSummary();
+  const overlay=$('#modal-overlay');
+  overlay.innerHTML=`<div class="modal">
+    <div class="modal-header"><span class="modal-title">Exporter mes decisions</span><button class="sb-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body"><div class="modal-preview">${U.esc(md)}</div></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="downloadDecisionJSON()">💾 Telecharger JSON</button>
+      <button class="btn btn-primary" onclick="copyDecisionSummary()">📋 Copier le resume</button>
+    </div></div>`;
+  overlay.classList.add('open');
+}
+function closeModal(){$('#modal-overlay').classList.remove('open')}
+async function copyDecisionSummary(){
+  await navigator.clipboard.writeText(buildMarkdownSummary());
+  closeModal();showToast('✓ Copie ! Colle-le dans Claude Code.');
+}
+function downloadDecisionJSON(){
+  const blob=new Blob([JSON.stringify(buildDecisionJSON(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='decisions.json';a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ═══ KEYBOARD SHORTCUTS ═══ */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
+  if(e.key==='d'){e.preventDefault();toggleSidebar()}
+  if(e.key==='Escape'){if(S.sidebarOpen)toggleSidebar();closeModal()}
+  if(e.key>='1'&&e.key<='9'&&S.data){const n=+e.key;if(n<=S.data.iterations.length)pickIteration(n)}
+});
+
+/* ═══ EMPTY STATE ═══ */
+function renderEmptyState(){
+  $('#app-header').innerHTML=`<div class="header-left"><div class="skill-name">Skill Benchmark Dashboard</div><div class="skill-desc" style="cursor:default">Aucune donnee chargee</div></div>`;
+  $('#tab-nav').style.display='none';$('#sidebar-toggle').style.display='none';
+  $('#app-main').innerHTML=`<div class="empty-state"><div class="empty-title">Bienvenue sur le dashboard de benchmarking</div>
+    <div class="empty-sub">Ce dashboard se remplit automatiquement quand les donnees de benchmark sont injectees.</div>
+    <div class="empty-flow"><div class="flow-step"><div class="flow-num">1</div><div class="flow-label">Run benchmark</div></div><div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-label">Data injected</div></div><div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-label">Dashboard renders</div></div></div>
+    <div class="copy-hint">Structure JSON attendue (BENCHMARK_DATA) :</div>
+    <pre class="empty-json">{
+  "metadata": { "skill_name": "my-skill", "total_iterations": 5, "runs_per_config": 3 },
+  "iterations": [{ "iteration": 1, "configs": { "with_skill": { "pass_rate": { "mean": 0.85, "stddev": 0.05, "values": [0.8, 0.85, 0.9] }, ... }, "without_skill": { ... } } }],
+  "evals": [{ "eval_id": 1, "eval_name": "...", "runs": [{ "iteration": 1, "configuration": "with_skill", "pass_rate": 1.0, "expectations": [...] }] }],
+  "trigger_eval": { "iterations": [{ "iteration": 1, "f1": 0.924, "confusion": [[19,1],[2,18]], "misclassified": [...] }] }
+}</pre>
+    <button class="btn btn-primary" style="font-size:.9rem;padding:10px 24px" onclick="loadSampleData()">Charger les donnees de demo</button></div>`;
+}
+function loadSampleData(){
+  S.data=getSampleData();S.rendered.clear();
+  renderHeader();renderTabNav();renderOverview();S.rendered.add('overview');
+  const restored=loadDecisions();if(restored)showToast(`✓ ${restored} decisions restaurees`);
+  updateSidebar();
+}
+
+/* ═══ INIT ═══ */
+function init(){
+  S.data=BENCHMARK_DATA||null;
+  if(!S.data){renderEmptyState();return}
+  renderHeader();renderTabNav();renderOverview();S.rendered.add('overview');
+  const restored=loadDecisions();
+  if(restored)showToast(`✓ ${restored} decisions restaurees depuis ta derniere session`);
+  updateSidebar();
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
