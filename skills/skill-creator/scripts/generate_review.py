@@ -127,29 +127,118 @@ def _collect_previous_runs(previous_workspace: Path) -> list[dict]:
 # Génération HTML
 # ---------------------------------------------------------------------------
 
+def _build_dashboard_data(benchmark_data: dict, skill_name: str) -> dict:
+    """
+    Transforme benchmark.json en format BENCHMARK_DATA pour le dashboard.
+    """
+    meta = benchmark_data.get("metadata", {})
+    b_runs = benchmark_data.get("runs", [])
+    run_summary = benchmark_data.get("run_summary", {})
+    cost_per_token = 0.00001
+
+    # Build configs depuis run_summary
+    configs: dict[str, dict] = {}
+    for cfg_name, cfg_stats in run_summary.items():
+        if cfg_name == "delta":
+            continue
+        config_runs = [r for r in b_runs if r.get("configuration") == cfg_name]
+        configs[cfg_name] = {
+            "pass_rate": {
+                "mean": cfg_stats["pass_rate"]["mean"],
+                "stddev": cfg_stats["pass_rate"]["stddev"],
+                "values": [r["result"]["pass_rate"] for r in config_runs],
+            },
+            "time_seconds": {
+                "mean": cfg_stats["time_seconds"]["mean"],
+                "stddev": cfg_stats["time_seconds"]["stddev"],
+                "values": [r["result"]["time_seconds"] for r in config_runs],
+            },
+            "tokens": {
+                "mean": cfg_stats["tokens"]["mean"],
+                "stddev": cfg_stats["tokens"]["stddev"],
+                "values": [float(r["result"]["tokens"]) for r in config_runs],
+            },
+            "cost_usd": {
+                "mean": cfg_stats["tokens"]["mean"] * cost_per_token,
+                "stddev": cfg_stats["tokens"]["stddev"] * cost_per_token,
+                "values": [r["result"]["tokens"] * cost_per_token for r in config_runs],
+            },
+        }
+
+    # Build delta
+    delta_raw = run_summary.get("delta", {}).get("with_skill", {})
+    delta = {
+        "pass_rate": f"{float(delta_raw.get('pass_rate', 0)):+.0f}%",
+        "time_seconds": f"{float(delta_raw.get('time_seconds', 0)):+.1f}s",
+        "tokens": delta_raw.get("tokens", "+0"),
+        "cost_usd": f"${float(delta_raw.get('tokens', '0').lstrip('+')) * cost_per_token:+.4f}",
+    }
+
+    # Build evals groupés par eval_id
+    eval_map: dict[int, dict] = {}
+    for r in b_runs:
+        eid = r["eval_id"]
+        if eid not in eval_map:
+            eval_map[eid] = {
+                "eval_id": eid,
+                "eval_name": r["eval_name"],
+                "category": "general",
+                "runs": [],
+            }
+        eval_map[eid]["runs"].append({
+            "iteration": 1,
+            "configuration": r["configuration"],
+            "run_number": r["run_number"],
+            "pass_rate": r["result"]["pass_rate"],
+            "passed": r["result"]["passed"],
+            "total": r["result"]["total"],
+            "time_seconds": r["result"]["time_seconds"],
+            "tokens": r["result"]["tokens"],
+            "cost_usd": round(r["result"]["tokens"] * cost_per_token, 6),
+            "errors": r["result"]["errors"],
+            "expectations": r.get("expectations", []),
+        })
+
+    return {
+        "metadata": {
+            "generated_at": meta.get("timestamp", ""),
+            "skill_name": skill_name,
+            "skill_description": "",
+            "model": meta.get("executor_model", ""),
+            "total_iterations": 1,
+            "runs_per_config": meta.get("runs_per_configuration", 1),
+        },
+        "iterations": [{
+            "iteration": 1,
+            "description": "",
+            "description_hash": "iter1",
+            "configs": configs,
+            "delta": delta,
+        }],
+        "evals": list(eval_map.values()),
+        "trigger_eval": None,
+    }
+
+
 def build_review_html(
     workspace_dir: Path,
     skill_name: str,
     benchmark_path: Path | None = None,
     previous_workspace: Path | None = None,
     trigger_mode: bool = False,
-    template: str | None = None,
 ) -> str:
     """
     Génère le HTML complet du viewer.
 
-    Charge assets/eval_review.html (ou eval_review_trigger.html en trigger_mode,
-    ou eval_review_<template>.html si --template est fourni),
-    remplace les placeholders par les données JSON sérialisées.
+    Charge assets/eval_review_dashboard.html (ou eval_review_trigger.html
+    en trigger_mode) et remplace les placeholders par les données JSON.
     """
     # Trouver le répertoire assets/ relatif à ce script
     scripts_dir = Path(__file__).parent
     if trigger_mode:
         asset_name = "eval_review_trigger.html"
-    elif template:
-        asset_name = f"eval_review_{template}.html"
     else:
-        asset_name = "eval_review.html"
+        asset_name = "eval_review_dashboard.html"
     asset_path = scripts_dir.parent / "assets" / asset_name
 
     if not asset_path.exists():
@@ -172,6 +261,13 @@ def build_review_html(
         return json.dumps(data, ensure_ascii=False, indent=None)
 
     html = template
+
+    # Dashboard template : transformer les données au format BENCHMARK_DATA
+    if "/*__BENCHMARK_DATA__*/" in html and benchmark_data:
+        dashboard_data = _build_dashboard_data(benchmark_data, skill_name)
+        html = html.replace("/*__BENCHMARK_DATA__*/ null", safe_json(dashboard_data))
+
+    # Templates classiques : placeholders historiques
     html = html.replace("__EVAL_DATA_PLACEHOLDER__", safe_json(runs))
     html = html.replace("__BENCHMARK_DATA_PLACEHOLDER__", safe_json(benchmark_data))
     html = html.replace("__SKILL_NAME_PLACEHOLDER__", skill_name)
@@ -233,7 +329,6 @@ def main() -> None:
     parser.add_argument("--previous-workspace", type=Path, help="Workspace itération précédente")
     parser.add_argument("--static", type=Path, help="Écrire le HTML dans ce fichier (pas de serveur)")
     parser.add_argument("--trigger-mode", action="store_true", help="Mode description optimization")
-    parser.add_argument("--template", choices=["linear", "terminal", "shadcn", "analytics"], help="Style du template HTML")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
 
@@ -248,7 +343,6 @@ def main() -> None:
         benchmark_path=args.benchmark,
         previous_workspace=args.previous_workspace,
         trigger_mode=args.trigger_mode,
-        template=args.template,
     )
 
     # Mode statique : écrire le fichier et indiquer le chemin
