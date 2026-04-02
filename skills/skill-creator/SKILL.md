@@ -40,9 +40,13 @@ pratiques), lancer les recherches en parallèle via subagents avant de rédiger.
 Rédiger le SKILL.md avec :
 
 - **`name`** : identifiant du skill
-- **`description`** : mécanisme de déclenchement principal — inclure ce que fait le skill ET
-  les contextes concrets d'activation. Être "pushy" : sans trigger explicite, Claude sous-utilise
-  les skills. Voir `references/skill-writing-guide.md` pour les patterns et exemples.
+- **`description`** : mécanisme de déclenchement principal. **Chaîne sur une seule ligne**
+  (ne jamais utiliser `>` ou `|` YAML). Écrire comme une phrase naturelle qui couvre ce que
+  fait le skill ET les contextes d'activation — "pushy" mais lisible, ≤500 caractères.
+  Voir `references/skill-writing-guide.md` pour les patterns et exemples.
+
+  ✓ `description: Do X. Use when the user asks to Y, Z, or mentions W — even without the word "X".`
+  ✗ `description: >\n  Do X.\n  Use when: Y, Z, W.`
 - **`compatibility`** : outils ou dépendances requis (rarement nécessaire)
 - **Corps** : instructions, format de sortie, exemples, renvois vers les fichiers bundlés
 
@@ -54,6 +58,10 @@ Garder le SKILL.md sous 500 lignes. Si on approche la limite, déléguer vers `r
 
 Rédiger 2-3 prompts réalistes — ce qu'un vrai utilisateur écrirait. Les partager avec
 l'utilisateur pour validation avant de lancer les runs.
+
+**Important :** sauvegarder aussi les evals dans le répertoire `outputs/` de chaque run lors
+de la création (voir boucle d'évaluation). Les prompts doivent être génériques — éviter les
+chemins spécifiques à l'environnement local (`/tmp/test-...`, `/home/user/...`).
 
 Sauvegarder dans `evals/evals.json` (dans le répertoire du skill) :
 
@@ -163,17 +171,26 @@ Produit `benchmark.json` et `benchmark.md`. Le benchmark inclut automatiquement 
 - `token_efficiency` : delta tokens / delta pass_rate (KPI principal)
 - `analyst_notes` : patterns non-discriminants, variance élevée, trade-offs
 
-**3. Lancer le viewer** :
+**3. Lancer le viewer** — tuer l'ancienne instance si elle tourne, puis relancer :
 
 ```bash
-nohup python <skill-creator-path>/scripts/generate_review.py \
+# Trouver le chemin du skill-creator (ce script)
+SKILL_CREATOR_PATH=$(dirname $(dirname $(realpath $0)))
+
+# Couper l'ancienne instance sur le port 8765
+kill $(lsof -ti :8765) 2>/dev/null; sleep 1
+
+# Lancer avec PYTHONPATH pour les imports internes
+PYTHONPATH="$SKILL_CREATOR_PATH" nohup python3 "$SKILL_CREATOR_PATH/scripts/generate_review.py" \
   <workspace>/iteration-N \
   --skill-name "mon-skill" \
   --benchmark <workspace>/iteration-N/benchmark.json \
-  [--previous-workspace <workspace>/iteration-N-1] \
-  > /dev/null 2>&1 &
+  --previous-workspace <workspace>/iteration-N-1 \
+  > /tmp/viewer-<nom>.log 2>&1 &
 VIEWER_PID=$!
 ```
+
+**Important :** passer `--previous-workspace` même à l'itération 2 pour afficher la comparaison multi-itérations dans le dashboard. Le dashboard affiche toujours les 2 dernières itérations côte à côte.
 
 Dire à l'utilisateur : "J'ai ouvert les résultats dans ton navigateur. Onglet 'Outputs' pour
 naviguer entre les test cases et laisser du feedback, onglet 'Benchmark' pour les stats.

@@ -26,14 +26,26 @@ description: Ce que fait le skill ET quand l'utiliser. Mécanisme de déclenchem
 
 ### Écrire une bonne description
 
-La description est ce que Claude lit pour décider d'activer le skill. Elle doit être "pushy" :
-inclure des contextes de déclenchement concrets, pas seulement ce que fait le skill.
+La description est ce que Claude lit pour décider d'activer le skill. Règles :
 
-**Faible** : "How to build a dashboard."
+1. **Une seule ligne** — ne jamais utiliser `>` ou `|` YAML, même pour les longues descriptions
+2. **Phrase naturelle** — pas une liste de mots-clés séparés par virgules
+3. **"Pushy"** — inclure des contextes de déclenchement concrets, pas seulement ce que fait le skill
+4. **≤500 caractères** — au-delà, chaque mot compte moins
 
-**Fort** : "How to build a dashboard to display internal data. Use whenever the user mentions
-dashboards, data visualization, internal metrics, or wants to display any kind of data — even
-without the word 'dashboard'."
+**Faible** : `"How to build a dashboard."`
+
+**Moyen** (bloc YAML — à éviter) :
+```yaml
+description: >
+  Build a dashboard to display data. Use when: dashboards,
+  data visualization, internal metrics, display data.
+```
+
+**Fort** (phrase naturelle sur une ligne) :
+```yaml
+description: Build a dashboard to display internal data. Use whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of data — even without the word "dashboard".
+```
 
 ---
 

@@ -127,16 +127,14 @@ def _collect_previous_runs(previous_workspace: Path) -> list[dict]:
 # Génération HTML
 # ---------------------------------------------------------------------------
 
-def _build_dashboard_data(benchmark_data: dict, skill_name: str) -> dict:
+def _build_iteration_entry(benchmark_data: dict, iteration_number: int) -> tuple[dict, dict]:
     """
-    Transforme benchmark.json en format BENCHMARK_DATA pour le dashboard.
+    Construit un entry d'itération et retourne (iteration_entry, eval_runs_by_id).
     """
-    meta = benchmark_data.get("metadata", {})
     b_runs = benchmark_data.get("runs", [])
     run_summary = benchmark_data.get("run_summary", {})
     cost_per_token = 0.00001
 
-    # Build configs depuis run_summary
     configs: dict[str, dict] = {}
     for cfg_name, cfg_stats in run_summary.items():
         if cfg_name == "delta":
@@ -165,7 +163,6 @@ def _build_dashboard_data(benchmark_data: dict, skill_name: str) -> dict:
             },
         }
 
-    # Build delta
     delta_raw = run_summary.get("delta", {}).get("with_skill", {})
     delta = {
         "pass_rate": f"{float(delta_raw.get('pass_rate', 0)):+.0f}%",
@@ -174,19 +171,13 @@ def _build_dashboard_data(benchmark_data: dict, skill_name: str) -> dict:
         "cost_usd": f"${float(delta_raw.get('tokens', '0').lstrip('+')) * cost_per_token:+.4f}",
     }
 
-    # Build evals groupés par eval_id
-    eval_map: dict[int, dict] = {}
+    eval_runs: dict[int, list] = {}
     for r in b_runs:
         eid = r["eval_id"]
-        if eid not in eval_map:
-            eval_map[eid] = {
-                "eval_id": eid,
-                "eval_name": r["eval_name"],
-                "category": "general",
-                "runs": [],
-            }
-        eval_map[eid]["runs"].append({
-            "iteration": 1,
+        if eid not in eval_runs:
+            eval_runs[eid] = []
+        eval_runs[eid].append({
+            "iteration": iteration_number,
             "configuration": r["configuration"],
             "run_number": r["run_number"],
             "pass_rate": r["result"]["pass_rate"],
@@ -199,22 +190,57 @@ def _build_dashboard_data(benchmark_data: dict, skill_name: str) -> dict:
             "expectations": r.get("expectations", []),
         })
 
+    iteration_entry = {
+        "iteration": iteration_number,
+        "description": "",
+        "description_hash": f"iter{iteration_number}",
+        "configs": configs,
+        "delta": delta,
+    }
+    return iteration_entry, eval_runs
+
+
+def _build_dashboard_data(
+    benchmark_data: dict,
+    skill_name: str,
+    previous_benchmarks: list[dict] | None = None,
+) -> dict:
+    """
+    Transforme benchmark.json en format BENCHMARK_DATA pour le dashboard.
+    Intègre toutes les itérations précédentes dans l'ordre chronologique.
+    previous_benchmarks : liste ordonnée de la plus ancienne à la plus récente.
+    """
+    meta = benchmark_data.get("metadata", {})
+    all_benchmarks = list(previous_benchmarks or []) + [benchmark_data]
+
+    iterations = []
+    eval_map: dict[int, dict] = {}
+
+    for i, bench in enumerate(all_benchmarks):
+        iter_number = i + 1
+        entry, eval_runs = _build_iteration_entry(bench, iter_number)
+        iterations.append(entry)
+        for r in bench.get("runs", []):
+            eid = r["eval_id"]
+            if eid not in eval_map:
+                eval_map[eid] = {
+                    "eval_id": eid,
+                    "eval_name": r["eval_name"],
+                    "category": "general",
+                    "runs": [],
+                }
+            eval_map[eid]["runs"].extend(eval_runs.get(eid, []))
+
     return {
         "metadata": {
             "generated_at": meta.get("timestamp", ""),
             "skill_name": skill_name,
             "skill_description": "",
             "model": meta.get("executor_model", ""),
-            "total_iterations": 1,
+            "total_iterations": len(iterations),
             "runs_per_config": meta.get("runs_per_configuration", 1),
         },
-        "iterations": [{
-            "iteration": 1,
-            "description": "",
-            "description_hash": "iter1",
-            "configs": configs,
-            "delta": delta,
-        }],
+        "iterations": iterations,
         "evals": list(eval_map.values()),
         "trigger_eval": None,
     }
@@ -264,7 +290,32 @@ def build_review_html(
 
     # Dashboard template : transformer les données au format BENCHMARK_DATA
     if "/*__BENCHMARK_DATA__*/" in html and benchmark_data:
-        dashboard_data = _build_dashboard_data(benchmark_data, skill_name)
+        # Auto-détecter toutes les itérations précédentes dans le workspace parent
+        previous_benchmarks: list[dict] = []
+        workspace_parent = workspace_dir.parent
+
+        def _iter_number(path: Path) -> int:
+            try:
+                return int(path.name.split("-")[-1])
+            except ValueError:
+                return -1
+
+        current_iter_num = _iter_number(workspace_dir)
+        if current_iter_num > 0:
+            prev_dirs = sorted(
+                [d for d in workspace_parent.iterdir()
+                 if d.is_dir() and _iter_number(d) > 0 and _iter_number(d) < current_iter_num],
+                key=_iter_number,
+            )
+            for prev_dir in prev_dirs:
+                bench_path = prev_dir / "benchmark.json"
+                if bench_path.exists():
+                    try:
+                        previous_benchmarks.append(read_json(bench_path))
+                    except (FileNotFoundError, ValueError):
+                        pass
+
+        dashboard_data = _build_dashboard_data(benchmark_data, skill_name, previous_benchmarks)
         html = html.replace("/*__BENCHMARK_DATA__*/ null", safe_json(dashboard_data))
 
     # Templates classiques : placeholders historiques

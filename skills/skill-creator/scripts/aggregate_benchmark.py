@@ -170,7 +170,7 @@ def _load_single_run(run_dir: Path, eval_id: int, eval_name: str) -> dict | None
     result["expectations"] = raw_expectations
 
     # Notes depuis user_notes_summary
-    notes_summary = grading.get("user_notes_summary", {})
+    notes_summary = grading.get("user_notes_summary") or {}
     notes = (
         notes_summary.get("uncertainties", [])
         + notes_summary.get("needs_review", [])
